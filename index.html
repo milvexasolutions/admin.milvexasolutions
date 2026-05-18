@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/icon.png?v=4" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <link rel="apple-touch-icon" href="/icon.png?v=4" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="msapplication-TileColor" content="#0B1F4D" />
+    <meta name="description" content="Professional Dairy Farm Management System" />
+    <title>MILVEXA – Cattle Farm Management</title>
+    <link rel="stylesheet" href="/splash.css?v=4" />
+  </head>
+  <body>
+    <!-- Premium Animated Splash Screen (Only) -->
+    <div id="splash-screen">
+      <div class="splash-logo-container">
+        <img src="/icon.png?v=4" alt="Milvexa Logo" class="splash-logo" />
+      </div>
+      <h1 class="splash-title">Milvexa</h1>
+      <p class="splash-tagline">Cattle Farm Management</p>
+      <div class="loader"></div>
+    </div>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Global splash management coordinated with React app loading + update checks
+      window.hideSplash = () => {
+        const splash = document.getElementById('splash-screen');
+        if (splash && !splash.classList.contains('hide-splash')) {
+          splash.classList.add('hide-splash');
+          document.body.style.overflow = 'auto';
+        }
+      };
+
+      // Fallback: hide splash after 5 seconds if React app fails to signal (slow connection / offline)
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          window.hideSplash();
+        }, 5000);
+      });
+
+      // Disable Pinch-to-Zoom
+      document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      document.addEventListener('gesturestart', (e) => {
+        e.preventDefault();
+      });
+
+      // Disable Ctrl+Wheel zoom
+      document.addEventListener('wheel', (e) => {
+        if (e.ctrlKey) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      // Disable Ctrl+Plus/Minus/Zero
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '0' || e.keyCode === 187 || e.keyCode === 189 || e.keyCode === 48)) {
+          e.preventDefault();
+        }
+      });
+    </script>
+  </body>
+</html>

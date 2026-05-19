@@ -9,6 +9,7 @@ import {
   User, 
   X,
   LogOut,
+  LifeBuoy,
   Settings as SettingsIcon,
   Users,
   Briefcase,
@@ -601,6 +602,7 @@ const Sidebar = ({ isOpen, onClose, isPermanent = false }) => {
   const [isSupplierOpen, setIsSupplierOpen] = React.useState(false);
   const [isBreedingOpen, setIsBreedingOpen] = React.useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = React.useState(false);
+  const [isSupportDropdownOpen, setIsSupportDropdownOpen] = React.useState(false);
 
   const drawerClass = isPermanent ? 'premium-drawer open' : `premium-drawer ${isOpen ? 'open' : ''}`;
   const backdropClass = `drawer-backdrop ${isOpen ? 'open' : ''}`;
@@ -1240,7 +1242,7 @@ const Sidebar = ({ isOpen, onClose, isPermanent = false }) => {
         </div>
       </div>
 
-        {/* Bottom Section: Settings & Logout */}
+        {/* Bottom Section: Settings & Help & Support Collapsible Dropdown */}
         <div style={{ padding: '16px 20px', borderTop: '1px solid #F1F5F9', background: 'white' }}>
           <button 
             onClick={() => { navigate('/settings'); onClose(); }}
@@ -1249,13 +1251,102 @@ const Sidebar = ({ isOpen, onClose, isPermanent = false }) => {
             <SettingsIcon size={18} />
             <span style={{ fontWeight: '700', fontSize: '14px' }}>Settings</span>
           </button>
-          <button 
-            onClick={async () => { await supabase.auth.signOut(); navigate('/login'); onClose(); }}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '16px', background: '#FEF2F2', color: '#EF4444', border: 'none', cursor: 'pointer' }}
-          >
-            <LogOut size={18} />
-            <span style={{ fontWeight: '800', fontSize: '14px' }}>Logout</span>
-          </button>
+          
+          <div>
+            <button 
+              onClick={() => setIsSupportDropdownOpen(!isSupportDropdownOpen)}
+              style={{ 
+                width: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px', 
+                padding: '12px 16px', 
+                borderRadius: '16px', 
+                background: '#EFF6FF', 
+                color: 'var(--accent)', 
+                border: 'none', 
+                cursor: 'pointer' 
+              }}
+            >
+              <LifeBuoy size={18} />
+              <span style={{ fontWeight: '800', fontSize: '14px', flex: 1, textAlign: 'left' }}>Help & Support</span>
+              {isSupportDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {isSupportDropdownOpen && (
+              <div style={{ 
+                marginTop: '8px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '4px',
+                paddingLeft: '12px',
+                animation: 'slideDown 0.2s ease-out'
+              }}>
+                <button 
+                  onClick={() => { navigate('/chatbot'); onClose(); }}
+                  style={{ 
+                    width: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    padding: '10px 12px', 
+                    borderRadius: '12px', 
+                    background: 'transparent', 
+                    color: '#475569', 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    textAlign: 'left'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F1F5F9'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  💬 Chat Bot Assistant
+                </button>
+                <a 
+                  href="mailto:support@milvexa.com"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    padding: '10px 12px', 
+                    borderRadius: '12px', 
+                    background: 'transparent', 
+                    color: '#475569', 
+                    textDecoration: 'none',
+                    fontSize: '13px',
+                    fontWeight: '700'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F1F5F9'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  ✉️ support@milvexa.com
+                </a>
+                <a 
+                  href="https://wa.me/919876543210"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    padding: '10px 12px', 
+                    borderRadius: '12px', 
+                    background: 'transparent', 
+                    color: '#2E7D32', 
+                    textDecoration: 'none',
+                    fontSize: '13px',
+                    fontWeight: '800'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#E8F5E9'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  🟢 WhatsApp Support
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1285,6 +1376,7 @@ const AppContent = () => {
   const { t } = useTranslation();
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [updateInfo, setUpdateInfo] = React.useState(null);
+  const [announcementBanner, setAnnouncementBanner] = React.useState('');
   const [isCheckingUpdate, setIsCheckingUpdate] = React.useState(true); // Start as true to check updates along with splash
   const navigate = useNavigate();
   const location = useLocation();
@@ -1308,33 +1400,38 @@ const AppContent = () => {
     
     try {
       const { data, error } = await supabase
-        .from('app_settings')
+        .from('system_updates')
         .select('*')
-        .order('latest_version', { ascending: false })
-        .limit(1)
+        .eq('id', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
         .single();
 
-      if (!error && data && data.latest_version) {
-        const current = APP_VERSION.replace(/[^\d.]/g, '').split('.').map(Number);
-        const latest = data.latest_version.replace(/[^\d.]/g, '').split('.').map(Number);
-        let isNewer = false;
-        for (let i = 0; i < Math.max(current.length, latest.length); i++) {
-           const c = current[i] || 0;
-           const l = latest[i] || 0;
-           if (l > c) { isNewer = true; break; }
-           if (l < c) { break; }
+      if (!error && data) {
+        if (data.global_announcement) {
+          setAnnouncementBanner(data.global_announcement);
         }
-        if (isNewer) {
-          setUpdateInfo(data);
-        } else if (manual) {
-          alert(`App is up to date!\nInstalled: ${APP_VERSION}\nLatest: ${data.latest_version}`);
+        
+        if (data.latest_version) {
+          const current = APP_VERSION.replace(/[^\d.]/g, '').split('.').map(Number);
+          const latest = data.latest_version.replace(/[^\d.]/g, '').split('.').map(Number);
+          let isNewer = false;
+          for (let i = 0; i < Math.max(current.length, latest.length); i++) {
+             const c = current[i] || 0;
+             const l = latest[i] || 0;
+             if (l > c) { isNewer = true; break; }
+             if (l < c) { break; }
+          }
+          if (isNewer) {
+            setUpdateInfo(data);
+          } else if (manual) {
+            alert(`App is up to date!\nInstalled: ${APP_VERSION}\nLatest: ${data.latest_version}`);
+          }
         }
       } else if (manual) {
-        alert('No version data found in database. Please check app_settings table.');
+        alert('No version data found in database. Please check system_updates table.');
       }
     } catch (e) {
       console.log('Update check failed', e);
-      if (manual) alert(`Update check failed: ${e.message || 'Unknown error'}\n\nPlease ensure your Supabase 'app_settings' table is public.`);
+      if (manual) alert(`Update check failed: ${e.message || 'Unknown error'}`);
     } finally {
       setIsCheckingUpdate(false);
     }
@@ -1554,7 +1651,7 @@ const AppContent = () => {
                 <ArrowUpRight size={22} />
               </button>
               
-              {!updateInfo.is_force_update && (
+              {!updateInfo.is_mandatory && (
                 <button
                   onClick={() => setUpdateInfo(null)}
                   style={{ 
@@ -1600,6 +1697,16 @@ const AppContent = () => {
 
   return (
     <div className="app-container">
+      {announcementBanner && (
+        <div style={{ background: 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)', color: 'white', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 50, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13px', fontWeight: '700' }}>📢 {announcementBanner}</p>
+          </div>
+          <button onClick={() => setAnnouncementBanner('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', padding: '4px' }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
       <PullToRefresh onRefresh={async () => {
@@ -1672,7 +1779,10 @@ const BottomNavWrapper = () => {
   
   if (!user || isLargeScreen) return null;
   
-  // Show on all authenticated pages
+  // Show only on dashboard routes
+  const isDashboardRoute = location.pathname === '/' || location.pathname === '/dashboard';
+  if (!isDashboardRoute) return null;
+  
   return <BottomNav />;
 };
 

@@ -15,9 +15,7 @@ const Login = () => {
   // Login Sub-modes: 'password' | 'otp' | 'forgot' | 'verify-otp' | 'reset-verify' | 'new-password'
   const [loginType, setLoginType] = useState('password');
 
-  // Admin Code check helper
-  const ADMIN_EMAIL = 'milvexasolutions@gmail.com';
-  const getAdminCode = () => localStorage.getItem('milvexa_admin_code') || 'milvexa786';
+  // Removed hardcoded admin credentials for security
 
   // SignUp Sub-modes: isVerifyingSignUp (for email verification OTP code)
   const [isVerifyingSignUp, setIsVerifyingSignUp] = useState(false);
@@ -52,6 +50,28 @@ const Login = () => {
     return cleaned;
   };
 
+  const parseAuthError = (err) => {
+    if (!err || !err.message) return 'An error occurred during authentication.';
+    const msg = err.message.toLowerCase();
+    
+    if (msg.includes('invalid login credentials') || msg.includes('invalid credentials') || msg.includes('incorrect_password') || msg.includes('password is invalid') || msg.includes('invalid password') || msg.includes('not match')) {
+      return 'Incorrect Email/Mobile or Password. Please check your credentials and try again.';
+    }
+    if (msg.includes('email not confirmed') || msg.includes('confirmation required')) {
+      return 'Email is not verified yet. Please check your email inbox for the verification OTP code.';
+    }
+    if (msg.includes('invalid flow state') || msg.includes('invalid_grant') || msg.includes('otp') || msg.includes('token') || msg.includes('invalid code') || msg.includes('expired') || msg.includes('code is invalid') || msg.includes('incorrect otp')) {
+      return 'Incorrect or Expired OTP. Please enter the correct 6-digit code sent to your email.';
+    }
+    if (msg.includes('already registered') || msg.includes('user already exists')) {
+      return 'This email or mobile number is already registered. Please login instead.';
+    }
+    if (msg.includes('network') || msg.includes('fetch')) {
+      return 'Network connection issue. Please check your internet connection and try again.';
+    }
+    return err.message;
+  };
+
   const handleAuthAction = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -62,8 +82,8 @@ const Login = () => {
       if (mode === 'signup') {
         if (isVerifyingSignUp) {
           // Verify SignUp OTP Code
-          if (!otpCode.trim()) {
-            throw new Error('Please enter the 6-digit verification code.');
+          if (otpCode.trim().length !== 6) {
+            throw new Error('Incorrect OTP. Please enter the full 6-digit code.');
           }
           const cleanSignUpEmail = cleanEmail(email);
           const { data, error } = await verifySignUp(cleanSignUpEmail, otpCode);
@@ -100,21 +120,9 @@ const Login = () => {
           setSuccessMsg('Verification code sent to your email. Please verify to complete signup.');
           setIsVerifyingSignUp(true);
         }
-
       } else {
         // Login Flows
         if (loginType === 'password') {
-          // Check if email + password match Admin credentials
-          if (
-            emailOrMobile.trim().toLowerCase() === ADMIN_EMAIL &&
-            password.trim() === getAdminCode()
-          ) {
-            sessionStorage.setItem('admin_authenticated', 'true');
-            navigate('/admin');
-            setLoading(false);
-            return;
-          }
-          // Standard Password Login
           if (!emailOrMobile.trim() || !password.trim()) {
             throw new Error('Please enter email/mobile and password.');
           }
@@ -137,8 +145,8 @@ const Login = () => {
 
         } else if (loginType === 'verify-otp') {
           // Verify Login OTP
-          if (!otpCode.trim()) {
-            throw new Error('Please enter the 6-digit OTP code.');
+          if (otpCode.trim().length !== 6) {
+            throw new Error('Incorrect OTP. Please enter the correct 6-digit code sent to your email.');
           }
           const cleanedEmail = cleanEmail(emailOrMobile);
           const { error } = await verifyLoginOtp(cleanedEmail, otpCode);
@@ -159,8 +167,8 @@ const Login = () => {
 
         } else if (loginType === 'reset-verify') {
           // Verify Password Reset OTP
-          if (!otpCode.trim()) {
-            throw new Error('Please enter the 6-digit code.');
+          if (otpCode.trim().length !== 6) {
+            throw new Error('Incorrect OTP. Please enter the correct 6-digit recovery code.');
           }
           const cleanedEmail = cleanEmail(emailOrMobile);
           const { error } = await verifyResetOtp(cleanedEmail, otpCode);
@@ -189,15 +197,14 @@ const Login = () => {
         }
       }
     } catch (err) {
-      setErrorMsg(err.message || 'An error occurred during authentication.');
+      setErrorMsg(parseAuthError(err));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDemoMode = () => {
-    loginAsDemo();
-    navigate('/');
+    // Demo mode is disabled for security reasons
   };
 
   return (
@@ -719,7 +726,7 @@ const Login = () => {
         )}
       </div>
 
-      {/* Enter Demo Mode & Trial Section */}
+      {/* Enter Demo Mode & Trial Section (Removed for Security) */}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -727,39 +734,6 @@ const Login = () => {
         justifyContent: 'center',
         padding: '12px 24px 32px'
       }}>
-        <p style={{
-          fontSize: '13px',
-          color: '#64748B',
-          fontWeight: '700',
-          margin: '0 0 12px 0'
-        }}>
-          Want to try the app first?
-        </p>
-        <button
-          onClick={handleDemoMode}
-          style={{
-            background: '#FFFFFF',
-            color: '#0B1F4D',
-            border: '1px solid #E2E8F0',
-            borderRadius: '24px',
-            padding: '12px 32px',
-            fontSize: '13px',
-            fontWeight: '800',
-            cursor: 'pointer',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = '#F8FAFC';
-            e.target.style.borderColor = '#CBD5E1';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = '#FFFFFF';
-            e.target.style.borderColor = '#E2E8F0';
-          }}
-        >
-          Enter Demo Mode
-        </button>
 
         {/* Footer info */}
         <div style={{

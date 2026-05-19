@@ -25,21 +25,11 @@ export const AuthProvider = ({ children }) => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user ?? null;
       
-      if (!currentUser) {
-        // Check for persisted demo session
-        const isDemo = localStorage.getItem('isDemo') === 'true';
-        if (isDemo) {
-          const demoUser = {
-            id: '00000000-0000-0000-0000-000000000000',
-            email: 'demo@example.com',
-            user_metadata: { full_name: 'Demo User' }
-          };
-          setUser(demoUser);
-          setProfile({ farm_name: 'Demo Farm', full_name: 'Demo User' });
-        }
-      } else {
+      if (currentUser) {
         setUser(currentUser);
         fetchProfile(currentUser.id);
+      } else {
+        setUser(null);
       }
       setLoading(false);
     };
@@ -142,14 +132,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginAsDemo = () => {
-    localStorage.setItem('isDemo', 'true');
-    const demoUser = {
-      id: '00000000-0000-0000-0000-000000000000',
-      email: 'demo@example.com',
-      user_metadata: { full_name: 'Demo User' }
-    };
-    setUser(demoUser);
-    setProfile({ farm_name: 'Demo Farm', full_name: 'Demo User' });
+    // Feature removed to prevent hardcoded bypasses
   };
 
   const refreshProfile = () => user && fetchProfile(user.id);

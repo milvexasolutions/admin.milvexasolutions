@@ -44,39 +44,12 @@ const sanitizeInput = (input) => {
   return input.replace(/[<>'"`;]/g, ''); // Strip dangerous characters
 };
 
-// Seed mock tickets if local storage is empty so the dashboard feels fully active out of the box
+// Get tickets from local storage
 const getGlobalTickets = () => {
   try {
     const raw = localStorage.getItem(TICKETS_KEY);
     if (raw) return JSON.parse(raw);
-    const mock = [
-      {
-        id: 'MVX-382901',
-        farmerName: 'Kishan Kumar',
-        phone: '+91 98765 43210',
-        problem: 'Milk fat calculator showing discrepancy in evening shift. SNF calculation seems lower than standard.',
-        status: 'Open',
-        date: new Date(Date.now() - 3600000 * 2).toISOString()
-      },
-      {
-        id: 'MVX-492019',
-        farmerName: 'Ramesh Patel',
-        phone: '+91 87654 32109',
-        problem: 'Lumpy Skin visual analysis failed to scanning attachment. Image was taken in dark lighting.',
-        status: 'In Progress',
-        date: new Date(Date.now() - 3600000 * 18).toISOString()
-      },
-      {
-        id: 'MVX-772901',
-        farmerName: 'Harpreet Singh',
-        phone: '+91 76543 21098',
-        problem: 'Registered Murrah Buffalo vital alerts. Temperature is stable but milk yield dropped 4L today.',
-        status: 'Resolved',
-        date: new Date(Date.now() - 3600000 * 48).toISOString()
-      }
-    ];
-    localStorage.setItem(TICKETS_KEY, JSON.stringify(mock));
-    return mock;
+    return [];
   } catch {
     return [];
   }

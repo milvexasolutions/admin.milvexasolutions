@@ -1,0 +1,16 @@
+{
+	"appId": "com.milvexa.cattlefarm",
+	"appName": "MILVEXA – Cattle Farm Management",
+	"webDir": "dist",
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 3000,
+			"launchAutoHide": true,
+			"backgroundColor": "#002648",
+			"androidScaleType": "CENTER_CROP",
+			"showSpinner": false,
+			"splashFullScreen": true,
+			"splashImmersive": true
+		}
+	}
+}

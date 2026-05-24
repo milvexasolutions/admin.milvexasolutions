@@ -91,7 +91,7 @@ const MilkReport = () => {
   const displayRecords = activeTab === 'production' ? productionRecords : salesRecords;
 
   return (
-    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px', paddingTop: 'calc(var(--safe-top) + 80px)' }}>
+    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px', paddingTop: 'calc(var(--safe-top) + 88px)' }}>
       <PageHeader title="Milk Reports" showBack={true} />
       
       {/* Tab Switcher */}

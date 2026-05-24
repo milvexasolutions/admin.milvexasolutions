@@ -252,7 +252,7 @@ const Login = () => {
         </div>
 
         {/* Milvexa Text Title */}
-        <h1 style={{
+        <h1 className="notranslate" translate="no" style={{
           fontSize: '28px',
           fontWeight: '900',
           color: '#FFFFFF',
@@ -263,7 +263,7 @@ const Login = () => {
         </h1>
 
         {/* Sub-branding */}
-        <p style={{
+        <p className="notranslate" translate="no" style={{
           fontSize: '13px',
           fontWeight: '600',
           color: 'rgba(255, 255, 255, 0.65)',

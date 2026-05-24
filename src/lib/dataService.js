@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { demoService } from './demoService';
 
 export const dataService = (userId) => {
-  const isDemo = userId === '00000000-0000-0000-0000-000000000000';
+  const isDemo = userId === '00000000-0000-0000-0000-000000000000' || userId === 'demo-user';
 
   return {
     from: (table) => ({

@@ -1,0 +1,1574 @@
+[
+  {
+    "string": "5 to 6 Working Days",
+    "key": "5_to_6_working_days"
+  },
+  {
+    "string": "ADVISORY",
+    "key": "advisory"
+  },
+  {
+    "string": "AI Computer Vision Scan",
+    "key": "ai_computer_vision_scan"
+  },
+  {
+    "string": "AI Predicted Diagnosis:",
+    "key": "ai_predicted_diagnosis"
+  },
+  {
+    "string": "ANALYTICS",
+    "key": "analytics"
+  },
+  {
+    "string": "Access Level",
+    "key": "access_level"
+  },
+  {
+    "string": "Actions",
+    "key": "actions"
+  },
+  {
+    "string": "Active Firewall Policies",
+    "key": "active_firewall_policies"
+  },
+  {
+    "string": "Add Income/Exp",
+    "key": "add_incomeexp"
+  },
+  {
+    "string": "Add Milk Record",
+    "key": "add_milk_record"
+  },
+  {
+    "string": "Add New Animal",
+    "key": "add_new_animal"
+  },
+  {
+    "string": "Add New Staff Administrator",
+    "key": "add_new_staff_administrator"
+  },
+  {
+    "string": "Add Receipt",
+    "key": "add_receipt"
+  },
+  {
+    "string": "Add Record",
+    "key": "add_record"
+  },
+  {
+    "string": "Add a veterinarian to manage medical history and payments.",
+    "key": "add_a_veterinarian_to_manage_medical_history_and_payments"
+  },
+  {
+    "string": "Add vendors to manage feed and medicine supplies.",
+    "key": "add_vendors_to_manage_feed_and_medicine_supplies"
+  },
+  {
+    "string": "Add your farm workers to manage salaries and advances.",
+    "key": "add_your_farm_workers_to_manage_salaries_and_advances"
+  },
+  {
+    "string": "Add your first dairy Dairy to start managing sales and feed.",
+    "key": "add_your_first_dairy_dairy_to_start_managing_sales_and_feed"
+  },
+  {
+    "string": "Admin Email Address",
+    "key": "admin_email_address"
+  },
+  {
+    "string": "Admin Workspace",
+    "key": "admin_workspace"
+  },
+  {
+    "string": "All Animals (Collective)",
+    "key": "all_animals_collective"
+  },
+  {
+    "string": "Amount (₹)",
+    "key": "amount_"
+  },
+  {
+    "string": "Amul Dairy Society",
+    "key": "amul_dairy_society"
+  },
+  {
+    "string": "An unexpected error occurred. Don't worry, your farm data is completely safe.",
+    "key": "an_unexpected_error_occurred_dont_worry_your_farm_data_is_completely_safe"
+  },
+  {
+    "string": "Analyzing Supabase Rules & API Endpoints...",
+    "key": "analyzing_supabase_rules__api_endpoints"
+  },
+  {
+    "string": "Animal Category",
+    "key": "animal_category"
+  },
+  {
+    "string": "Animal ID",
+    "key": "animal_id"
+  },
+  {
+    "string": "Animal Status (Health)",
+    "key": "animal_status_health"
+  },
+  {
+    "string": "Animal added successfully!",
+    "key": "animal_added_successfully"
+  },
+  {
+    "string": "Animal marked as sold successfully!",
+    "key": "animal_marked_as_sold_successfully"
+  },
+  {
+    "string": "Animal updated successfully!",
+    "key": "animal_updated_successfully"
+  },
+  {
+    "string": "Artificial (AI)",
+    "key": "artificial_ai"
+  },
+  {
+    "string": "Attach Image/Video",
+    "key": "attach_imagevideo"
+  },
+  {
+    "string": "Authorized administrator access only. All interactions logged.",
+    "key": "authorized_administrator_access_only_all_interactions_logged"
+  },
+  {
+    "string": "Automatically detected anomalies and unauthorized access attempts",
+    "key": "automatically_detected_anomalies_and_unauthorized_access_attempts"
+  },
+  {
+    "string": "BROADCAST LIVE MESSAGE",
+    "key": "broadcast_live_message"
+  },
+  {
+    "string": "Back to Edit Info",
+    "key": "back_to_edit_info"
+  },
+  {
+    "string": "Back to Login",
+    "key": "back_to_login"
+  },
+  {
+    "string": "Balance (₹)",
+    "key": "balance_"
+  },
+  {
+    "string": "Basic Information",
+    "key": "basic_information"
+  },
+  {
+    "string": "Bill Month",
+    "key": "bill_month"
+  },
+  {
+    "string": "Bovine Mastitis Preset",
+    "key": "bovine_mastitis_preset"
+  },
+  {
+    "string": "Breed",
+    "key": "breed"
+  },
+  {
+    "string": "Breeding Date",
+    "key": "breeding_date"
+  },
+  {
+    "string": "Breeding History",
+    "key": "breeding_history"
+  },
+  {
+    "string": "Breeding Type",
+    "key": "breeding_type"
+  },
+  {
+    "string": "Breeding record added successfully!",
+    "key": "breeding_record_added_successfully"
+  },
+  {
+    "string": "Breeding record updated!",
+    "key": "breeding_record_updated"
+  },
+  {
+    "string": "Broadcast a live banner to all mobile apps",
+    "key": "broadcast_a_live_banner_to_all_mobile_apps"
+  },
+  {
+    "string": "Bull #104 or Semen ID",
+    "key": "bull_104_or_semen_id"
+  },
+  {
+    "string": "Bypass Fat Feed:",
+    "key": "bypass_fat_feed"
+  },
+  {
+    "string": "Calculated Balance",
+    "key": "calculated_balance"
+  },
+  {
+    "string": "Calculated Rate:",
+    "key": "calculated_rate"
+  },
+  {
+    "string": "Camera",
+    "key": "camera"
+  },
+  {
+    "string": "Category & Status",
+    "key": "category__status"
+  },
+  {
+    "string": "Cattle Breed:",
+    "key": "cattle_breed"
+  },
+  {
+    "string": "Cattle Flagged Sick",
+    "key": "cattle_flagged_sick"
+  },
+  {
+    "string": "Cattle Gait Video",
+    "key": "cattle_gait_video"
+  },
+  {
+    "string": "Cattle LSD Nodules Presets",
+    "key": "cattle_lsd_nodules_presets"
+  },
+  {
+    "string": "Cattle Weight:",
+    "key": "cattle_weight"
+  },
+  {
+    "string": "Change System Passcode",
+    "key": "change_system_passcode"
+  },
+  {
+    "string": "Choose Cow",
+    "key": "choose_cow"
+  },
+  {
+    "string": "Choose Employee",
+    "key": "choose_employee"
+  },
+  {
+    "string": "Choose Staff Member",
+    "key": "choose_staff_member"
+  },
+  {
+    "string": "Choose Supplier",
+    "key": "choose_supplier"
+  },
+  {
+    "string": "Choose a Dairy",
+    "key": "choose_a_dairy"
+  },
+  {
+    "string": "Choose a Period",
+    "key": "choose_a_period"
+  },
+  {
+    "string": "Civil Hospital Road",
+    "key": "civil_hospital_road"
+  },
+  {
+    "string": "Clear Chat",
+    "key": "clear_chat"
+  },
+  {
+    "string": "Coming Soon",
+    "key": "coming_soon"
+  },
+  {
+    "string": "Concentrate Mix:",
+    "key": "concentrate_mix"
+  },
+  {
+    "string": "Confirm Passcode",
+    "key": "confirm_passcode"
+  },
+  {
+    "string": "Confirm new passcode",
+    "key": "confirm_new_passcode"
+  },
+  {
+    "string": "Contact",
+    "key": "contact"
+  },
+  {
+    "string": "Contact Number",
+    "key": "contact_number"
+  },
+  {
+    "string": "Contact Person",
+    "key": "contact_person"
+  },
+  {
+    "string": "Created on:",
+    "key": "created_on"
+  },
+  {
+    "string": "DATE",
+    "key": "date"
+  },
+  {
+    "string": "DEPLOY APK UPDATE TO ALL USERS",
+    "key": "deploy_apk_update_to_all_users"
+  },
+  {
+    "string": "Daily Avg",
+    "key": "daily_avg"
+  },
+  {
+    "string": "Daily Earnings:",
+    "key": "daily_earnings"
+  },
+  {
+    "string": "Daily Milk Output:",
+    "key": "daily_milk_output"
+  },
+  {
+    "string": "Dairies",
+    "key": "dairies"
+  },
+  {
+    "string": "Dairy Name",
+    "key": "dairy_name"
+  },
+  {
+    "string": "Dairy removed successfully",
+    "key": "dairy_removed_successfully"
+  },
+  {
+    "string": "Database Memory",
+    "key": "database_memory"
+  },
+  {
+    "string": "Date",
+    "key": "date"
+  },
+  {
+    "string": "Death Animal",
+    "key": "death_animal"
+  },
+  {
+    "string": "Describe what changed...",
+    "key": "describe_what_changed"
+  },
+  {
+    "string": "Description...",
+    "key": "description"
+  },
+  {
+    "string": "Doctor Name",
+    "key": "doctor_name"
+  },
+  {
+    "string": "Doctor added successfully!",
+    "key": "doctor_added_successfully"
+  },
+  {
+    "string": "Doctor removed successfully",
+    "key": "doctor_removed_successfully"
+  },
+  {
+    "string": "Doctor updated successfully!",
+    "key": "doctor_updated_successfully"
+  },
+  {
+    "string": "Dr. Sharma",
+    "key": "dr_sharma"
+  },
+  {
+    "string": "EKG VITAL PULSE",
+    "key": "ekg_vital_pulse"
+  },
+  {
+    "string": "EVE",
+    "key": "eve"
+  },
+  {
+    "string": "Edit Amount",
+    "key": "edit_amount"
+  },
+  {
+    "string": "Edit Animal Details",
+    "key": "edit_animal_details"
+  },
+  {
+    "string": "Edit Breeding",
+    "key": "edit_breeding"
+  },
+  {
+    "string": "Edit Dairy",
+    "key": "edit_dairy"
+  },
+  {
+    "string": "Edit Details",
+    "key": "edit_details"
+  },
+  {
+    "string": "Edit Doctor",
+    "key": "edit_doctor"
+  },
+  {
+    "string": "Edit Staff",
+    "key": "edit_staff"
+  },
+  {
+    "string": "Edit Supplier",
+    "key": "edit_supplier"
+  },
+  {
+    "string": "Email ID",
+    "key": "email_id"
+  },
+  {
+    "string": "Email changed successfully to",
+    "key": "email_changed_successfully_to"
+  },
+  {
+    "string": "Email or Mobile",
+    "key": "email_or_mobile"
+  },
+  {
+    "string": "End Date",
+    "key": "end_date"
+  },
+  {
+    "string": "Enter 6-Digit OTP",
+    "key": "enter_6digit_otp"
+  },
+  {
+    "string": "Enter new passcode",
+    "key": "enter_new_passcode"
+  },
+  {
+    "string": "Enter owner name",
+    "key": "enter_owner_name"
+  },
+  {
+    "string": "Enter phone number",
+    "key": "enter_phone_number"
+  },
+  {
+    "string": "Enter your full name",
+    "key": "enter_your_full_name"
+  },
+  {
+    "string": "Error adding animal:",
+    "key": "error_adding_animal"
+  },
+  {
+    "string": "Error deleting animal:",
+    "key": "error_deleting_animal"
+  },
+  {
+    "string": "Error deleting record",
+    "key": "error_deleting_record"
+  },
+  {
+    "string": "Error deleting transaction",
+    "key": "error_deleting_transaction"
+  },
+  {
+    "string": "Error fetching animal details",
+    "key": "error_fetching_animal_details"
+  },
+  {
+    "string": "Error removing Dairy",
+    "key": "error_removing_dairy"
+  },
+  {
+    "string": "Error removing doctor",
+    "key": "error_removing_doctor"
+  },
+  {
+    "string": "Error removing staff",
+    "key": "error_removing_staff"
+  },
+  {
+    "string": "Error removing supplier",
+    "key": "error_removing_supplier"
+  },
+  {
+    "string": "Error selling animal:",
+    "key": "error_selling_animal"
+  },
+  {
+    "string": "Error updating animal:",
+    "key": "error_updating_animal"
+  },
+  {
+    "string": "Error updating email:",
+    "key": "error_updating_email"
+  },
+  {
+    "string": "Error updating password:",
+    "key": "error_updating_password"
+  },
+  {
+    "string": "Error:",
+    "key": "error"
+  },
+  {
+    "string": "Expected Gain",
+    "key": "expected_gain"
+  },
+  {
+    "string": "Farm Details",
+    "key": "farm_details"
+  },
+  {
+    "string": "Farm Staff",
+    "key": "farm_staff"
+  },
+  {
+    "string": "Farm location/address",
+    "key": "farm_locationaddress"
+  },
+  {
+    "string": "Farmer Info",
+    "key": "farmer_info"
+  },
+  {
+    "string": "Farmer Name",
+    "key": "farmer_name"
+  },
+  {
+    "string": "Fat",
+    "key": "fat"
+  },
+  {
+    "string": "Feed purchase recorded successfully!",
+    "key": "feed_purchase_recorded_successfully"
+  },
+  {
+    "string": "Fetching herd data...",
+    "key": "fetching_herd_data"
+  },
+  {
+    "string": "Fetching logs...",
+    "key": "fetching_logs"
+  },
+  {
+    "string": "Force mobile clients to download latest version",
+    "key": "force_mobile_clients_to_download_latest_version"
+  },
+  {
+    "string": "Gallery",
+    "key": "gallery"
+  },
+  {
+    "string": "Get support on WhatsApp",
+    "key": "get_support_on_whatsapp"
+  },
+  {
+    "string": "Global App Announcement",
+    "key": "global_app_announcement"
+  },
+  {
+    "string": "Global Helpdesk Config",
+    "key": "global_helpdesk_config"
+  },
+  {
+    "string": "Global Operations Desk",
+    "key": "global_operations_desk"
+  },
+  {
+    "string": "Green Fodder Ratio:",
+    "key": "green_fodder_ratio"
+  },
+  {
+    "string": "Helpdesk Support Name",
+    "key": "helpdesk_support_name"
+  },
+  {
+    "string": "Helpline Support Email",
+    "key": "helpline_support_email"
+  },
+  {
+    "string": "Holstein Friesian",
+    "key": "holstein_friesian"
+  },
+  {
+    "string": "IP Address",
+    "key": "ip_address"
+  },
+  {
+    "string": "Inspect Farmer Details",
+    "key": "inspect_farmer_details"
+  },
+  {
+    "string": "Invalid OTP code! Please enter 123456.",
+    "key": "invalid_otp_code_please_enter_123456"
+  },
+  {
+    "string": "Isolate cattle immediately. Provide clean water and easy digestible feed. Alert Vet Doctor using the Vet Ledger.",
+    "key": "isolate_cattle_immediately_provide_clean_water_and_easy_digestible_feed_alert_vet_doctor_using_the_vet_ledger"
+  },
+  {
+    "string": "Item Name (Feed Type)",
+    "key": "item_name_feed_type"
+  },
+  {
+    "string": "Jersey Cow",
+    "key": "jersey_cow"
+  },
+  {
+    "string": "Joining Date",
+    "key": "joining_date"
+  },
+  {
+    "string": "Keep track of inseminations and pregnancy status.",
+    "key": "keep_track_of_inseminations_and_pregnancy_status"
+  },
+  {
+    "string": "Kisan Feed Agency",
+    "key": "kisan_feed_agency"
+  },
+  {
+    "string": "LIVE",
+    "key": "live"
+  },
+  {
+    "string": "Large Animal Specialist",
+    "key": "large_animal_specialist"
+  },
+  {
+    "string": "Launch Helpdesk",
+    "key": "launch_helpdesk"
+  },
+  {
+    "string": "Layer 7 Firewall has been triggered. All global access to the Milvexa infrastructure is temporarily frozen to prevent data exfiltration.",
+    "key": "layer_7_firewall_has_been_triggered_all_global_access_to_the_milvexa_infrastructure_is_temporarily_frozen_to_prevent_data_exfiltration"
+  },
+  {
+    "string": "Listening... Speak your farm query now.",
+    "key": "listening_speak_your_farm_query_now"
+  },
+  {
+    "string": "Live Banner Message",
+    "key": "live_banner_message"
+  },
+  {
+    "string": "Livestock Clinical Alerts",
+    "key": "livestock_clinical_alerts"
+  },
+  {
+    "string": "Loading database entries...",
+    "key": "loading_database_entries"
+  },
+  {
+    "string": "Location",
+    "key": "location"
+  },
+  {
+    "string": "Login Email (Read-Only)",
+    "key": "login_email_readonly"
+  },
+  {
+    "string": "Login Password",
+    "key": "login_password"
+  },
+  {
+    "string": "MOR",
+    "key": "mor"
+  },
+  {
+    "string": "Meloxicam Dose:",
+    "key": "meloxicam_dose"
+  },
+  {
+    "string": "Milk Payments",
+    "key": "milk_payments"
+  },
+  {
+    "string": "Milk Reports",
+    "key": "milk_reports"
+  },
+  {
+    "string": "Milk record saved successfully!",
+    "key": "milk_record_saved_successfully"
+  },
+  {
+    "string": "Milk record updated!",
+    "key": "milk_record_updated"
+  },
+  {
+    "string": "Milk sale recorded successfully!",
+    "key": "milk_sale_recorded_successfully"
+  },
+  {
+    "string": "Milker, Manager",
+    "key": "milker_manager"
+  },
+  {
+    "string": "Milking Status",
+    "key": "milking_status"
+  },
+  {
+    "string": "Milvexa",
+    "key": "milvexa"
+  },
+  {
+    "string": "Milvexa AI Optimizer",
+    "key": "milvexa_ai_optimizer"
+  },
+  {
+    "string": "Milvexa Admin Console",
+    "key": "milvexa_admin_console"
+  },
+  {
+    "string": "Milvexa Advanced AI",
+    "key": "milvexa_advanced_ai"
+  },
+  {
+    "string": "Milvexa Farm",
+    "key": "milvexa_farm"
+  },
+  {
+    "string": "Milvexa Support Desk",
+    "key": "milvexa_support_desk"
+  },
+  {
+    "string": "Milvexa Support Ticket",
+    "key": "milvexa_support_ticket"
+  },
+  {
+    "string": "Mobile Number",
+    "key": "mobile_number"
+  },
+  {
+    "string": "Monthly Projection:",
+    "key": "monthly_projection"
+  },
+  {
+    "string": "Monthly Salary (₹)",
+    "key": "monthly_salary_"
+  },
+  {
+    "string": "Murrah Buffalo",
+    "key": "murrah_buffalo"
+  },
+  {
+    "string": "NEW VERSION",
+    "key": "new_version"
+  },
+  {
+    "string": "Natural",
+    "key": "natural"
+  },
+  {
+    "string": "Network Latency",
+    "key": "network_latency"
+  },
+  {
+    "string": "New Admin Passcode",
+    "key": "new_admin_passcode"
+  },
+  {
+    "string": "New Market, Gwalior",
+    "key": "new_market_gwalior"
+  },
+  {
+    "string": "New passwords do not match!",
+    "key": "new_passwords_do_not_match"
+  },
+  {
+    "string": "No Breeding Records",
+    "key": "no_breeding_records"
+  },
+  {
+    "string": "No Dairies Found",
+    "key": "no_dairies_found"
+  },
+  {
+    "string": "No Doctors Found",
+    "key": "no_doctors_found"
+  },
+  {
+    "string": "No Records Found",
+    "key": "no_records_found"
+  },
+  {
+    "string": "No Staff Found",
+    "key": "no_staff_found"
+  },
+  {
+    "string": "No Suppliers Found",
+    "key": "no_suppliers_found"
+  },
+  {
+    "string": "No Transactions",
+    "key": "no_transactions"
+  },
+  {
+    "string": "No activities logged in database yet.",
+    "key": "no_activities_logged_in_database_yet"
+  },
+  {
+    "string": "No matching farmer records found.",
+    "key": "no_matching_farmer_records_found"
+  },
+  {
+    "string": "No milk records poured yet.",
+    "key": "no_milk_records_poured_yet"
+  },
+  {
+    "string": "No records found",
+    "key": "no_records_found"
+  },
+  {
+    "string": "No registered livestock found for this farmer in DB.",
+    "key": "no_registered_livestock_found_for_this_farmer_in_db"
+  },
+  {
+    "string": "No support tickets registered.",
+    "key": "no_support_tickets_registered"
+  },
+  {
+    "string": "No version data found in database. Please check system_updates table.",
+    "key": "no_version_data_found_in_database_please_check_system_updates_table"
+  },
+  {
+    "string": "Note",
+    "key": "note"
+  },
+  {
+    "string": "OPEN",
+    "key": "open"
+  },
+  {
+    "string": "OPTIMIZED",
+    "key": "optimized"
+  },
+  {
+    "string": "Online Operations",
+    "key": "online_operations"
+  },
+  {
+    "string": "Open Vet Management",
+    "key": "open_vet_management"
+  },
+  {
+    "string": "Or paste external link (e.g., Google Drive)...",
+    "key": "or_paste_external_link_eg_google_drive"
+  },
+  {
+    "string": "Outstanding Balance",
+    "key": "outstanding_balance"
+  },
+  {
+    "string": "Owner Name",
+    "key": "owner_name"
+  },
+  {
+    "string": "Paid",
+    "key": "paid"
+  },
+  {
+    "string": "Paid (₹)",
+    "key": "paid_"
+  },
+  {
+    "string": "Paid Amount (₹)",
+    "key": "paid_amount_"
+  },
+  {
+    "string": "Paracetamol Dose:",
+    "key": "paracetamol_dose"
+  },
+  {
+    "string": "Partial",
+    "key": "partial"
+  },
+  {
+    "string": "Password must be at least 6 characters!",
+    "key": "password_must_be_at_least_6_characters"
+  },
+  {
+    "string": "Password updated successfully!",
+    "key": "password_updated_successfully"
+  },
+  {
+    "string": "Period (Auto)",
+    "key": "period_auto"
+  },
+  {
+    "string": "Period Duration (Days)",
+    "key": "period_duration_days"
+  },
+  {
+    "string": "Phone",
+    "key": "phone"
+  },
+  {
+    "string": "Phone Line",
+    "key": "phone_line"
+  },
+  {
+    "string": "Platform Base Milk Price (per Liter)",
+    "key": "platform_base_milk_price_per_liter"
+  },
+  {
+    "string": "Please enter a valid email address.",
+    "key": "please_enter_a_valid_email_address"
+  },
+  {
+    "string": "Please select an animal",
+    "key": "please_select_an_animal"
+  },
+  {
+    "string": "Please select symptoms or click Anatomical cow zones to detect a disease first!",
+    "key": "please_select_symptoms_or_click_anatomical_cow_zones_to_detect_a_disease_first"
+  },
+  {
+    "string": "Please upload a valid .apk file.",
+    "key": "please_upload_a_valid_apk_file"
+  },
+  {
+    "string": "Prescribe Medication",
+    "key": "prescribe_medication"
+  },
+  {
+    "string": "Price per Liter (₹)",
+    "key": "price_per_liter_"
+  },
+  {
+    "string": "Price per Unit",
+    "key": "price_per_unit"
+  },
+  {
+    "string": "Pricing & Total",
+    "key": "pricing__total"
+  },
+  {
+    "string": "Problem Described:",
+    "key": "problem_described"
+  },
+  {
+    "string": "Problem Description",
+    "key": "problem_description"
+  },
+  {
+    "string": "Production",
+    "key": "production"
+  },
+  {
+    "string": "Production History",
+    "key": "production_history"
+  },
+  {
+    "string": "Purchase recorded successfully!",
+    "key": "purchase_recorded_successfully"
+  },
+  {
+    "string": "Push APK Update",
+    "key": "push_apk_update"
+  },
+  {
+    "string": "Quantity",
+    "key": "quantity"
+  },
+  {
+    "string": "Quantity & Quality",
+    "key": "quantity__quality"
+  },
+  {
+    "string": "Quantity (L)",
+    "key": "quantity_l"
+  },
+  {
+    "string": "RECOMMENDED ACTION:",
+    "key": "recommended_action"
+  },
+  {
+    "string": "Rajesh Kumar",
+    "key": "rajesh_kumar"
+  },
+  {
+    "string": "Ram Singh",
+    "key": "ram_singh"
+  },
+  {
+    "string": "Real-time Livestock & Yield ledger",
+    "key": "realtime_livestock__yield_ledger"
+  },
+  {
+    "string": "Real-time System Actions Log",
+    "key": "realtime_system_actions_log"
+  },
+  {
+    "string": "Recent Threat Logs",
+    "key": "recent_threat_logs"
+  },
+  {
+    "string": "Record Now",
+    "key": "record_now"
+  },
+  {
+    "string": "Record deleted successfully",
+    "key": "record_deleted_successfully"
+  },
+  {
+    "string": "Registered Date",
+    "key": "registered_date"
+  },
+  {
+    "string": "Release Highlights",
+    "key": "release_highlights"
+  },
+  {
+    "string": "Remaining Balance",
+    "key": "remaining_balance"
+  },
+  {
+    "string": "Remove Record",
+    "key": "remove_record"
+  },
+  {
+    "string": "Restart Application",
+    "key": "restart_application"
+  },
+  {
+    "string": "Role Level",
+    "key": "role_level"
+  },
+  {
+    "string": "SAVE DESK CONFIGURATION",
+    "key": "save_desk_configuration"
+  },
+  {
+    "string": "SEVERITY SCALE:",
+    "key": "severity_scale"
+  },
+  {
+    "string": "SNF",
+    "key": "snf"
+  },
+  {
+    "string": "SUPER ADMIN OVERRIDE (RESTORE SYSTEM)",
+    "key": "super_admin_override_restore_system"
+  },
+  {
+    "string": "SYMPTOM:",
+    "key": "symptom"
+  },
+  {
+    "string": "SYSTEM IN EMERGENCY LOCKDOWN",
+    "key": "system_in_emergency_lockdown"
+  },
+  {
+    "string": "Sahiwal Cow",
+    "key": "sahiwal_cow"
+  },
+  {
+    "string": "Salary & Advance",
+    "key": "salary__advance"
+  },
+  {
+    "string": "Scan system for unauthorized access or vulnerabilities",
+    "key": "scan_system_for_unauthorized_access_or_vulnerabilities"
+  },
+  {
+    "string": "Search by name or tag...",
+    "key": "search_by_name_or_tag"
+  },
+  {
+    "string": "Search farmer name, farm tag, phone number...",
+    "key": "search_farmer_name_farm_tag_phone_number"
+  },
+  {
+    "string": "Search name or tag #",
+    "key": "search_name_or_tag_"
+  },
+  {
+    "string": "Security & Threats",
+    "key": "security__threats"
+  },
+  {
+    "string": "Select Animal",
+    "key": "select_animal"
+  },
+  {
+    "string": "Select Animal (Name or Tag)",
+    "key": "select_animal_name_or_tag"
+  },
+  {
+    "string": "Select App Language",
+    "key": "select_app_language"
+  },
+  {
+    "string": "Select Dairy",
+    "key": "select_dairy"
+  },
+  {
+    "string": "Select Doctor",
+    "key": "select_doctor"
+  },
+  {
+    "string": "Select Feed Item",
+    "key": "select_feed_item"
+  },
+  {
+    "string": "Select Period",
+    "key": "select_period"
+  },
+  {
+    "string": "Select Staff",
+    "key": "select_staff"
+  },
+  {
+    "string": "Select Supplier",
+    "key": "select_supplier"
+  },
+  {
+    "string": "Select a Dairy",
+    "key": "select_a_dairy"
+  },
+  {
+    "string": "Select a Doctor",
+    "key": "select_a_doctor"
+  },
+  {
+    "string": "Select a Society",
+    "key": "select_a_society"
+  },
+  {
+    "string": "Sell Animal Form",
+    "key": "sell_animal_form"
+  },
+  {
+    "string": "Server CPU Load",
+    "key": "server_cpu_load"
+  },
+  {
+    "string": "Settings updated successfully!",
+    "key": "settings_updated_successfully"
+  },
+  {
+    "string": "Shift",
+    "key": "shift"
+  },
+  {
+    "string": "Sign Up",
+    "key": "sign_up"
+  },
+  {
+    "string": "Skip for later",
+    "key": "skip_for_later"
+  },
+  {
+    "string": "Smart Cattle Farm Management",
+    "key": "smart_cattle_farm_management"
+  },
+  {
+    "string": "Society added successfully!",
+    "key": "society_added_successfully"
+  },
+  {
+    "string": "Society rate slip",
+    "key": "society_rate_slip"
+  },
+  {
+    "string": "Society updated successfully!",
+    "key": "society_updated_successfully"
+  },
+  {
+    "string": "Sold For",
+    "key": "sold_for"
+  },
+  {
+    "string": "Sold On",
+    "key": "sold_on"
+  },
+  {
+    "string": "Something went wrong",
+    "key": "something_went_wrong"
+  },
+  {
+    "string": "Specialty",
+    "key": "specialty"
+  },
+  {
+    "string": "Stable Allocation",
+    "key": "stable_allocation"
+  },
+  {
+    "string": "Staff Email Address",
+    "key": "staff_email_address"
+  },
+  {
+    "string": "Staff Name",
+    "key": "staff_name"
+  },
+  {
+    "string": "Staff added successfully!",
+    "key": "staff_added_successfully"
+  },
+  {
+    "string": "Staff removed successfully",
+    "key": "staff_removed_successfully"
+  },
+  {
+    "string": "Staff updated successfully!",
+    "key": "staff_updated_successfully"
+  },
+  {
+    "string": "Standard Staff",
+    "key": "standard_staff"
+  },
+  {
+    "string": "Start Date",
+    "key": "start_date"
+  },
+  {
+    "string": "Start recording your farm income and expenses.",
+    "key": "start_recording_your_farm_income_and_expenses"
+  },
+  {
+    "string": "Success",
+    "key": "success"
+  },
+  {
+    "string": "Super Admin",
+    "key": "super_admin"
+  },
+  {
+    "string": "Supplier Name",
+    "key": "supplier_name"
+  },
+  {
+    "string": "Supplier added successfully!",
+    "key": "supplier_added_successfully"
+  },
+  {
+    "string": "Supplier removed successfully",
+    "key": "supplier_removed_successfully"
+  },
+  {
+    "string": "Supplier updated!",
+    "key": "supplier_updated"
+  },
+  {
+    "string": "Support Admin",
+    "key": "support_admin"
+  },
+  {
+    "string": "Support Queue",
+    "key": "support_queue"
+  },
+  {
+    "string": "Synchronize Data",
+    "key": "synchronize_data"
+  },
+  {
+    "string": "Tag #",
+    "key": "tag_"
+  },
+  {
+    "string": "Tag ID",
+    "key": "tag_id"
+  },
+  {
+    "string": "Target Milestone Goal",
+    "key": "target_milestone_goal"
+  },
+  {
+    "string": "Tasks",
+    "key": "tasks"
+  },
+  {
+    "string": "Temp:",
+    "key": "temp"
+  },
+  {
+    "string": "Text-to-Speech is not supported in this browser.",
+    "key": "texttospeech_is_not_supported_in_this_browser"
+  },
+  {
+    "string": "There are no entries in this record category.",
+    "key": "there_are_no_entries_in_this_record_category"
+  },
+  {
+    "string": "This passcode is required to unlock the Admin Panel and access global farmers information. Make sure to keep it confidential and remember it securely.",
+    "key": "this_passcode_is_required_to_unlock_the_admin_panel_and_access_global_farmers_information_make_sure_to_keep_it_confidential_and_remember_it_securely"
+  },
+  {
+    "string": "Ticket ID:",
+    "key": "ticket_id"
+  },
+  {
+    "string": "Time to Upgrade!",
+    "key": "time_to_upgrade"
+  },
+  {
+    "string": "Timeline:",
+    "key": "timeline"
+  },
+  {
+    "string": "Timestamp",
+    "key": "timestamp"
+  },
+  {
+    "string": "Total Amount",
+    "key": "total_amount"
+  },
+  {
+    "string": "Total Cost",
+    "key": "total_cost"
+  },
+  {
+    "string": "Total Fee (₹)",
+    "key": "total_fee_"
+  },
+  {
+    "string": "Total Milk (L)",
+    "key": "total_milk_l"
+  },
+  {
+    "string": "Total Milk (₹)",
+    "key": "total_milk_"
+  },
+  {
+    "string": "Transaction Type",
+    "key": "transaction_type"
+  },
+  {
+    "string": "Transaction deleted successfully",
+    "key": "transaction_deleted_successfully"
+  },
+  {
+    "string": "Transaction recorded successfully!",
+    "key": "transaction_recorded_successfully"
+  },
+  {
+    "string": "Transaction updated!",
+    "key": "transaction_updated"
+  },
+  {
+    "string": "Type a broadcast message to display at the top of the mobile app...",
+    "key": "type_a_broadcast_message_to_display_at_the_top_of_the_mobile_app"
+  },
+  {
+    "string": "UPDATE SECURITY PASSCODE",
+    "key": "update_security_passcode"
+  },
+  {
+    "string": "UPGRADE NOW",
+    "key": "upgrade_now"
+  },
+  {
+    "string": "Upaad (Advance)",
+    "key": "upaad_advance"
+  },
+  {
+    "string": "Upload New APK File OR Paste Link",
+    "key": "upload_new_apk_file_or_paste_link"
+  },
+  {
+    "string": "Use OTP Login",
+    "key": "use_otp_login"
+  },
+  {
+    "string": "Use Password Login",
+    "key": "use_password_login"
+  },
+  {
+    "string": "VET",
+    "key": "vet"
+  },
+  {
+    "string": "VET REMEDY PROTOCOL:",
+    "key": "vet_remedy_protocol"
+  },
+  {
+    "string": "Verification OTP code 123456 sent to your new email:",
+    "key": "verification_otp_code_123456_sent_to_your_new_email"
+  },
+  {
+    "string": "Version Code",
+    "key": "version_code"
+  },
+  {
+    "string": "Version v1.0.0",
+    "key": "version_v100"
+  },
+  {
+    "string": "Vet Diagnostics report",
+    "key": "vet_diagnostics_report"
+  },
+  {
+    "string": "View Production History",
+    "key": "view_production_history"
+  },
+  {
+    "string": "Village, District",
+    "key": "village_district"
+  },
+  {
+    "string": "Voice Input",
+    "key": "voice_input"
+  },
+  {
+    "string": "Vulnerability Deep Scan",
+    "key": "vulnerability_deep_scan"
+  },
+  {
+    "string": "Welcome! Please generate your new password.",
+    "key": "welcome_please_generate_your_new_password"
+  },
+  {
+    "string": "WhatsApp Helpline Line",
+    "key": "whatsapp_helpline_line"
+  },
+  {
+    "string": "When you click broadcast, this message will instantly appear on the dashboards of all farmers using the Milvexa mobile application. Leave empty to clear current banner.",
+    "key": "when_you_click_broadcast_this_message_will_instantly_appear_on_the_dashboards_of_all_farmers_using_the_milvexa_mobile_application_leave_empty_to_clear_current_banner"
+  },
+  {
+    "string": "Yield feed recipe",
+    "key": "yield_feed_recipe"
+  },
+  {
+    "string": "Your account and farm records have been permanently deleted.",
+    "key": "your_account_and_farm_records_have_been_permanently_deleted"
+  },
+  {
+    "string": "Your account has been successfully deactivated. Logging out now...",
+    "key": "your_account_has_been_successfully_deactivated_logging_out_now"
+  },
+  {
+    "string": "clinical dosage slip",
+    "key": "clinical_dosage_slip"
+  },
+  {
+    "string": "e.g. +91 98765 43210",
+    "key": "eg_91_98765_43210"
+  },
+  {
+    "string": "e.g. +91 9876543210",
+    "key": "eg_91_9876543210"
+  },
+  {
+    "string": "e.g. 10.5",
+    "key": "eg_105"
+  },
+  {
+    "string": "e.g. 123456",
+    "key": "eg_123456"
+  },
+  {
+    "string": "e.g. 2.0.0",
+    "key": "eg_200"
+  },
+  {
+    "string": "e.g. 6.5",
+    "key": "eg_65"
+  },
+  {
+    "string": "e.g. 8.5",
+    "key": "eg_85"
+  },
+  {
+    "string": "e.g. 98765 00000",
+    "key": "eg_98765_00000"
+  },
+  {
+    "string": "e.g. 9876543210",
+    "key": "eg_9876543210"
+  },
+  {
+    "string": "e.g. Amul Dairy Society",
+    "key": "eg_amul_dairy_society"
+  },
+  {
+    "string": "e.g. Amul, Mother Dairy",
+    "key": "eg_amul_mother_dairy"
+  },
+  {
+    "string": "e.g. Bull #104 or Semen ID",
+    "key": "eg_bull_104_or_semen_id"
+  },
+  {
+    "string": "e.g. Civil Hospital Road",
+    "key": "eg_civil_hospital_road"
+  },
+  {
+    "string": "e.g. Corn, Hay...",
+    "key": "eg_corn_hay"
+  },
+  {
+    "string": "e.g. Cotton Cake, Cattle Feed",
+    "key": "eg_cotton_cake_cattle_feed"
+  },
+  {
+    "string": "e.g. Dr. Sharma",
+    "key": "eg_dr_sharma"
+  },
+  {
+    "string": "e.g. Ganga, Laxmi",
+    "key": "eg_ganga_laxmi"
+  },
+  {
+    "string": "e.g. Gir, Sahiwal, Murrah",
+    "key": "eg_gir_sahiwal_murrah"
+  },
+  {
+    "string": "e.g. Gokul Dairy Farm",
+    "key": "eg_gokul_dairy_farm"
+  },
+  {
+    "string": "e.g. Khal, Churi, Medicine",
+    "key": "eg_khal_churi_medicine"
+  },
+  {
+    "string": "e.g. Kisan Feed Agency",
+    "key": "eg_kisan_feed_agency"
+  },
+  {
+    "string": "e.g. Large Animal Specialist",
+    "key": "eg_large_animal_specialist"
+  },
+  {
+    "string": "e.g. March Salary, Emergency Loan",
+    "key": "eg_march_salary_emergency_loan"
+  },
+  {
+    "string": "e.g. Milker, Manager, Helper",
+    "key": "eg_milker_manager_helper"
+  },
+  {
+    "string": "e.g. New Market, Gwalior",
+    "key": "eg_new_market_gwalior"
+  },
+  {
+    "string": "e.g. Rajesh Kumar",
+    "key": "eg_rajesh_kumar"
+  },
+  {
+    "string": "e.g. Ram Singh",
+    "key": "eg_ram_singh"
+  },
+  {
+    "string": "e.g. Regular Checkup, Vaccination",
+    "key": "eg_regular_checkup_vaccination"
+  },
+  {
+    "string": "e.g. Sold 50L milk, Bought 5 bags of feed",
+    "key": "eg_sold_50l_milk_bought_5_bags_of_feed"
+  },
+  {
+    "string": "e.g. Tractor, Milking Machine...",
+    "key": "eg_tractor_milking_machine"
+  },
+  {
+    "string": "e.g. Village Name, District",
+    "key": "eg_village_name_district"
+  },
+  {
+    "string": "payout projection sheet",
+    "key": "payout_projection_sheet"
+  }
+]

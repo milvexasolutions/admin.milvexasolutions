@@ -85,7 +85,7 @@ const SellAnimal = () => {
     <div className="animate-fade-in" style={{ 
       background: '#F8FAFC', 
       minHeight: '100vh', 
-      paddingTop: 'calc(var(--safe-top) + 80px)',
+      paddingTop: 'calc(var(--safe-top) + 88px)',
       paddingBottom: '40px' 
     }}>
       <PageHeader title="Sell Animal Form" showBack={true} />

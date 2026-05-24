@@ -45,7 +45,7 @@ const SupplierList = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px', paddingTop: 'calc(var(--safe-top) + 80px)' }}>
+    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px', paddingTop: 'calc(var(--safe-top) + 88px)' }}>
       <PageHeader title="Suppliers" showBack={true} />
       
       <div style={{ padding: '20px' }}>

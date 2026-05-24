@@ -39,7 +39,7 @@ const AddSupplier = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingTop: 'calc(var(--safe-top) + 80px)', paddingBottom: '40px' }}>
+    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingTop: 'calc(var(--safe-top) + 88px)', paddingBottom: '40px' }}>
       <PageHeader title="Add Supplier" showBack={true} />
 
       <form onSubmit={handleSubmit} style={{ padding: '0 20px', marginTop: '15px' }}>

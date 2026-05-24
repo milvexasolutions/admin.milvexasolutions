@@ -1,0 +1,857 @@
+[
+  {
+    "string": "+91 98765 43210",
+    "key": "91_98765_43210",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "+91 9876543210",
+    "key": "91_9876543210",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "0 &&",
+    "key": "0_",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "0 && (",
+    "key": "0__",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "0 ? (",
+    "key": "0__",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "102.5 && temp",
+    "key": "1025__temp",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Add a veterinarian to manage medical history and payments.",
+    "key": "add_a_veterinarian_to_manage_medical_history_and_payments",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Add your farm workers to manage salaries and advances.",
+    "key": "add_your_farm_workers_to_manage_salaries_and_advances",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Add your first dairy Dairy to start managing sales and feed.",
+    "key": "add_your_first_dairy_dairy_to_start_managing_sales_and_feed",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "An unexpected error occurred. Don't worry, your farm data is completely safe.",
+    "key": "an_unexpected_error_occurred_dont_worry_your_farm_data_is_completely_safe",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to clear chat history and restart?",
+    "key": "are_you_sure_you_want_to_clear_chat_history_and_restart",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to delete this payment record?",
+    "key": "are_you_sure_you_want_to_delete_this_payment_record",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to delete this record?",
+    "key": "are_you_sure_you_want_to_delete_this_record",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to delete this transaction?",
+    "key": "are_you_sure_you_want_to_delete_this_transaction",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to log out?",
+    "key": "are_you_sure_you_want_to_log_out",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to remove this Dairy?",
+    "key": "are_you_sure_you_want_to_remove_this_dairy",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to remove this doctor?",
+    "key": "are_you_sure_you_want_to_remove_this_doctor",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to remove this staff member?",
+    "key": "are_you_sure_you_want_to_remove_this_staff_member",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Are you sure you want to remove this supplier?",
+    "key": "are_you_sure_you_want_to_remove_this_supplier",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Authorized administrator access only. All interactions logged.",
+    "key": "authorized_administrator_access_only_all_interactions_logged",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Automatically detected anomalies and unauthorized access attempts",
+    "key": "automatically_detected_anomalies_and_unauthorized_access_attempts",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Breeding record updated successfully!",
+    "key": "breeding_record_updated_successfully",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Calving recorded successfully! Calf has been added and Mother status updated.",
+    "key": "calving_recorded_successfully_calf_has_been_added_and_mother_status_updated",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Cattle Farm Management",
+    "key": "cattle_farm_management",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Database Table Required",
+    "key": "database_table_required",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Error recording birth:",
+    "key": "error_recording_birth",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Forgot Password?",
+    "key": "forgot_password",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Gir",
+    "key": "gir",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Holstein Friesian (HF)",
+    "key": "holstein_friesian_hf",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "ID",
+    "key": "id",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Isolate cattle immediately. Provide clean water and easy digestible feed. Alert Vet Doctor using the Vet Ledger.",
+    "key": "isolate_cattle_immediately_provide_clean_water_and_easy_digestible_feed_alert_vet_doctor_using_the_vet_ledger",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Jafarabadi",
+    "key": "jafarabadi",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Jersey",
+    "key": "jersey",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Kankrej",
+    "key": "kankrej",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "LAST WARNING! Are you sure you want to permanently delete your account? All of your farm data will be lost forever.",
+    "key": "last_warning_are_you_sure_you_want_to_permanently_delete_your_account_all_of_your_farm_data_will_be_lost_forever",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Layer 7 Firewall has been triggered. All global access to the Milvexa infrastructure is temporarily frozen to prevent data exfiltration.",
+    "key": "layer_7_firewall_has_been_triggered_all_global_access_to_the_milvexa_infrastructure_is_temporarily_frozen_to_prevent_data_exfiltration",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "MILVEXA - Cattle Farm Management",
+    "key": "milvexa__cattle_farm_management",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "MILVEXA FARM STATEMENT",
+    "key": "milvexa_farm_statement",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Mandatory Update?",
+    "key": "mandatory_update",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Mehsana",
+    "key": "mehsana",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Murrah",
+    "key": "murrah",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "No registered livestock found for this farmer in DB.",
+    "key": "no_registered_livestock_found_for_this_farmer_in_db",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "No version data found in database. Please check system_updates table.",
+    "key": "no_version_data_found_in_database_please_check_system_updates_table",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Notification reminder scheduled!",
+    "key": "notification_reminder_scheduled",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "OFFICIAL REPORT",
+    "key": "official_report",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Please enter the verification OTP code.",
+    "key": "please_enter_the_verification_otp_code",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Please fill name and tag number.",
+    "key": "please_fill_name_and_tag_number",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Please select symptoms or click Anatomical cow zones to detect a disease first!",
+    "key": "please_select_symptoms_or_click_anatomical_cow_zones_to_detect_a_disease_first",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "SMS sent successfully via gateway!",
+    "key": "sms_sent_successfully_via_gateway",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "ST",
+    "key": "st",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Sahiwal",
+    "key": "sahiwal",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Scan system for unauthorized access or vulnerabilities",
+    "key": "scan_system_for_unauthorized_access_or_vulnerabilities",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "This passcode is required to unlock the Admin Panel and access global farmers information. Make sure to keep it confidential and remember it securely.",
+    "key": "this_passcode_is_required_to_unlock_the_admin_panel_and_access_global_farmers_information_make_sure_to_keep_it_confidential_and_remember_it_securely",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "To start using the Borrow & Lend ledger, you need to create the table in Supabase. Copy the SQL script below and execute it in your Supabase SQL Editor.",
+    "key": "to_start_using_the_borrow__lend_ledger_you_need_to_create_the_table_in_supabase_copy_the_sql_script_below_and_execute_it_in_your_supabase_sql_editor",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Total Income",
+    "key": "total_income",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Type a broadcast message to display at the top of the mobile app...",
+    "key": "type_a_broadcast_message_to_display_at_the_top_of_the_mobile_app",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Verification OTP has been sent to your new email:",
+    "key": "verification_otp_has_been_sent_to_your_new_email",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Verify Setup",
+    "key": "verify_setup",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "WARNING: Are you sure you want to temporarily deactivate your account? You can contact our support team to reactivate it at any time.",
+    "key": "warning_are_you_sure_you_want_to_temporarily_deactivate_your_account_you_can_contact_our_support_team_to_reactivate_it_at_any_time",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "When you click broadcast, this message will instantly appear on the dashboards of all farmers using the Milvexa mobile application. Leave empty to clear current banner.",
+    "key": "when_you_click_broadcast_this_message_will_instantly_appear_on_the_dashboards_of_all_farmers_using_the_milvexa_mobile_application_leave_empty_to_clear_current_banner",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Withdraw",
+    "key": "withdraw",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Your account and farm records have been permanently deleted.",
+    "key": "your_account_and_farm_records_have_been_permanently_deleted",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "Your account has been successfully deactivated. Logging out now...",
+    "key": "your_account_has_been_successfully_deactivated_logging_out_now",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "c.balance",
+    "key": "cbalance",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. 6.5",
+    "key": "eg_65",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. 8.5",
+    "key": "eg_85",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. 98765 00000",
+    "key": "eg_98765_00000",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. 9876543210",
+    "key": "eg_9876543210",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Amul Dairy Society",
+    "key": "eg_amul_dairy_society",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Amul, Mother Dairy",
+    "key": "eg_amul_mother_dairy",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Calf of Ganga",
+    "key": "eg_calf_of_ganga",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Civil Hospital Road",
+    "key": "eg_civil_hospital_road",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Corn, Hay...",
+    "key": "eg_corn_hay",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Cotton Cake, Cattle Feed",
+    "key": "eg_cotton_cake_cattle_feed",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Dr. Sharma",
+    "key": "eg_dr_sharma",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Ganga, Laxmi",
+    "key": "eg_ganga_laxmi",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Gir, Sahiwal",
+    "key": "eg_gir_sahiwal",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Gir, Sahiwal, Murrah",
+    "key": "eg_gir_sahiwal_murrah",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Gokul Dairy Farm",
+    "key": "eg_gokul_dairy_farm",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Khal, Churi, Medicine",
+    "key": "eg_khal_churi_medicine",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Kisan Feed Agency",
+    "key": "eg_kisan_feed_agency",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Large Animal Specialist",
+    "key": "eg_large_animal_specialist",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. March Salary, Emergency Loan",
+    "key": "eg_march_salary_emergency_loan",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Milker, Manager, Helper",
+    "key": "eg_milker_manager_helper",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. New Market, Gwalior",
+    "key": "eg_new_market_gwalior",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Rajesh Kumar",
+    "key": "eg_rajesh_kumar",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Ram Singh",
+    "key": "eg_ram_singh",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Regular Checkup, Vaccination",
+    "key": "eg_regular_checkup_vaccination",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Sold 50L milk, Bought 5 bags of feed",
+    "key": "eg_sold_50l_milk_bought_5_bags_of_feed",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Tractor, Milking Machine...",
+    "key": "eg_tractor_milking_machine",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "e.g. Village Name, District",
+    "key": "eg_village_name_district",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "employee@milvexa.in",
+    "key": "employeemilvexain",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "ms",
+    "key": "ms",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "payout projection sheet",
+    "key": "payout_projection_sheet",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  },
+  {
+    "string": "support@milvexasolutions.com",
+    "key": "supportmilvexasolutionscom",
+    "missingIn": {
+      "en": true,
+      "hi": true,
+      "gu": true
+    }
+  }
+]

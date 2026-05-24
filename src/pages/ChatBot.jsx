@@ -79,12 +79,13 @@ const ChatBot = () => {
 
   // Persistent Clinical Scan History Logs Ledger (Local Storage)
   const [patientRecords, setPatientRecords] = useState(() => {
-    const saved = localStorage.getItem('milvexa_patient_scans');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, tag: 'MV-COW-309', breed: 'Jersey Cow', disease: 'Bovine Mastitis (Udder tissue infection)', date: '2026-05-16', status: 'Recovering' },
-      { id: 2, tag: 'MV-BUF-104', breed: 'Murrah Buffalo', disease: 'Lumpy Skin Disease (LSD virus)', date: '2026-05-17', status: 'Quarantined' }
-    ];
+    const saved = localStorage.getItem('milvexa_patient_scans_v3');
+    return saved ? JSON.parse(saved) : [];
   });
+
+  useEffect(() => {
+    localStorage.removeItem('milvexa_patient_scans');
+  }, []);
 
   // Anatomical Region Click Helper
   const handleAnatomyClick = (region) => {
@@ -634,7 +635,7 @@ const ChatBot = () => {
     };
     const updated = [newLog, ...patientRecords];
     setPatientRecords(updated);
-    localStorage.setItem('milvexa_patient_scans', JSON.stringify(updated));
+    localStorage.setItem('milvexa_patient_scans_v3', JSON.stringify(updated));
   };
 
   // Handle preset workbench clinical prescription execution
@@ -701,7 +702,7 @@ const ChatBot = () => {
       minHeight: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-      paddingTop: 'calc(var(--safe-top) + 80px)',
+      paddingTop: 'calc(var(--safe-top) + 88px)',
       position: 'relative',
       overflowX: 'hidden'
     }}>

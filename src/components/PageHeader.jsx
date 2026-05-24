@@ -1,9 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, ArrowLeft, Bell } from 'lucide-react';
+import { Menu, ArrowLeft } from 'lucide-react';
+import { useHeader } from '../context/HeaderContext';
 
-const PageHeader = ({ title, showMenu, showBack, onOpenSidebar, rightAction }) => {
+// PageHeader is what page components render to configure the top header.
+const PageHeader = ({ title, showMenu, showBack, onOpenSidebar, rightAction, onBack }) => {
+  const { setHeaderConfig } = useHeader();
+
+  useEffect(() => {
+    setHeaderConfig({ title, showMenu, showBack, onOpenSidebar, rightAction, onBack });
+    // Cleanup to clear header config when page unmounts
+    return () => {
+      setHeaderConfig(null);
+    };
+  }, [title, showMenu, showBack, onOpenSidebar, rightAction, onBack, setHeaderConfig]);
+
+  return null;
+};
+
+// GlobalPageHeader is rendered once in App.jsx at the root level.
+export const GlobalPageHeader = () => {
+  const { headerConfig } = useHeader();
   const navigate = useNavigate();
+
+  if (!headerConfig) return null;
+
+  const { title, showMenu, showBack, onOpenSidebar, rightAction, onBack } = headerConfig;
 
   return (
     <div className="header-navy" style={{ 
@@ -11,7 +33,6 @@ const PageHeader = ({ title, showMenu, showBack, onOpenSidebar, rightAction }) =
       borderBottomRightRadius: '24px',
       background: 'linear-gradient(135deg, #05163D 0%, #0B1F4D 100%)',
       boxShadow: '0 10px 30px rgba(11, 31, 77, 0.2)',
-      padding: '16px 20px 24px',
       position: 'fixed',
       top: 0,
       left: 0,
@@ -35,7 +56,7 @@ const PageHeader = ({ title, showMenu, showBack, onOpenSidebar, rightAction }) =
         
         {showBack && (
           <button 
-            onClick={() => navigate(-1)}
+            onClick={onBack || (() => navigate(-1))}
             style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '12px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
           >
             <ArrowLeft size={22} />
@@ -43,37 +64,37 @@ const PageHeader = ({ title, showMenu, showBack, onOpenSidebar, rightAction }) =
         )}
 
         <div style={{ flex: 1, overflow: 'hidden' }}>
-          <h2 style={{ 
-            margin: 0, 
-            fontSize: '16px', 
-            fontWeight: '900', 
-            color: 'white', 
-            letterSpacing: '0.2px', 
-            fontFamily: "'Roboto', sans-serif", 
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            textAlign: showMenu ? 'center' : 'left'
-          }}>
-            {title}
-          </h2>
-          {!showMenu && (
-            <p style={{ margin: '2px 0 0', fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Milvexa Farm
-            </p>
+          {React.isValidElement(title) ? (
+            title
+          ) : (
+            <>
+              <h2 
+                className={title && typeof title === 'string' && title.toUpperCase().includes("MILVEXA") ? "notranslate" : ""}
+                translate={title && typeof title === 'string' && title.toUpperCase().includes("MILVEXA") ? "no" : undefined}
+                style={{ 
+                  margin: 0, 
+                  fontSize: '16px', 
+                  fontWeight: '900', 
+                  color: 'white', 
+                  letterSpacing: '0.2px', 
+                  fontFamily: "'Roboto', sans-serif", 
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  textAlign: showMenu ? 'center' : 'left'
+                }}
+              >
+                {title}
+              </h2>
+            </>
           )}
         </div>
 
         {rightAction ? (
           rightAction
         ) : (
-          <button 
-            onClick={() => navigate('/notifications')} 
-            style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '12px', color: 'white', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >
-            <Bell size={20} />
-          </button>
+          <div style={{ width: '40px', height: '40px', flexShrink: 0 }} />
         )}
       </div>
     </div>

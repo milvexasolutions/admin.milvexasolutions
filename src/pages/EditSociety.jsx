@@ -39,11 +39,11 @@ const EditSociety = () => {
   if (fetching) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="loading-spinner" /></div>;
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingTop: 'calc(var(--safe-top) + 80px)', paddingBottom: '40px' }}>
-      <PageHeader title="Edit Society" showBack={true} />
+    <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingTop: 'calc(var(--safe-top) + 88px)', paddingBottom: '40px' }}>
+      <PageHeader title="Edit Dairy" showBack={true} />
       <form onSubmit={handleSubmit} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ background: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div><label style={lbl}>Society Name</label><div style={{ position: 'relative' }}><div style={ico}><Building2 size={18} /></div><input style={inp} required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Amul Dairy Society" /></div></div>
+          <div><label style={lbl}>Dairy Name</label><div style={{ position: 'relative' }}><div style={ico}><Building2 size={18} /></div><input style={inp} required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Amul Dairy Society" /></div></div>
           <div><label style={lbl}>Location</label><div style={{ position: 'relative' }}><div style={ico}><MapPin size={18} /></div><input style={inp} value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="Village, District" /></div></div>
           <div><label style={lbl}>Contact Person</label><div style={{ position: 'relative' }}><div style={ico}><User size={18} /></div><input style={inp} value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} placeholder="Rajesh Kumar" /></div></div>
           <div><label style={lbl}>Contact Number</label><div style={{ position: 'relative' }}><div style={ico}><Phone size={18} /></div><input style={inp} type="tel" value={formData.contact_number} onChange={e => setFormData({...formData, contact_number: e.target.value})} placeholder="+91 9876543210" /></div></div>

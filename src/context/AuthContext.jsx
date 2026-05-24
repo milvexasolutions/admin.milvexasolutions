@@ -11,6 +11,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId) => {
+    if (userId === 'demo-user') {
+      setProfile({ full_name: 'Demo Farmer', farm_name: 'Demo Farm' });
+      return;
+    }
     const { data } = await supabase
       .from('profiles')
       .select('*')
@@ -25,9 +29,13 @@ export const AuthProvider = ({ children }) => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user ?? null;
       
+      const isDemo = localStorage.getItem('isDemo') === 'true';
       if (currentUser) {
         setUser(currentUser);
         fetchProfile(currentUser.id);
+      } else if (isDemo) {
+        setUser({ id: 'demo-user', email: 'demo@milvexa.com' });
+        setProfile({ full_name: 'Demo Farmer', farm_name: 'Demo Farm' });
       } else {
         setUser(null);
       }
@@ -45,7 +53,13 @@ export const AuthProvider = ({ children }) => {
       if (currentUser) {
         fetchProfile(currentUser.id);
       } else {
-        setProfile(null);
+        const isDemo = localStorage.getItem('isDemo') === 'true';
+        if (isDemo) {
+          setUser({ id: 'demo-user', email: 'demo@milvexa.com' });
+          setProfile({ full_name: 'Demo Farmer', farm_name: 'Demo Farm' });
+        } else {
+          setProfile(null);
+        }
       }
       setLoading(false);
     });
@@ -74,6 +88,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signIn = async (email, password) => {
+    if (email === 'demo@milvexa.com' && password === 'demo123') {
+      localStorage.setItem('isDemo', 'true');
+      const demoUser = { id: 'demo-user', email: 'demo@milvexa.com' };
+      setUser(demoUser);
+      setProfile({ full_name: 'Demo Farmer', farm_name: 'Demo Farm' });
+      return { data: { user: demoUser }, error: null };
+    }
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,

@@ -11,6 +11,7 @@ const AnimalCard = ({ animal, onEdit, onDelete, onSell, onDeath }) => {
   const [loadingHistory, setLoadingHistory] = React.useState(false);
   const [milkHistory, setMilkHistory] = React.useState([]);
   const { t } = useTranslation();
+  const cleanTag = animal.tag_number ? animal.tag_number.replace(/_(sold|dead|old).*/i, '') : '';
 
   const fetchAnimalHistory = async () => {
     setLoadingHistory(true);
@@ -36,6 +37,81 @@ const AnimalCard = ({ animal, onEdit, onDelete, onSell, onDeath }) => {
   React.useEffect(() => {
     if (showHistory) fetchAnimalHistory();
   }, [showHistory]);
+
+  // Birth Modal states
+  const [showBirthModal, setShowBirthModal] = React.useState(false);
+  const [birthLoading, setBirthLoading] = React.useState(false);
+  const [calfData, setCalfData] = React.useState({
+    name: '',
+    tag_number: '',
+    gender: 'Female',
+    breed: animal.breed || '',
+    birth_date: new Date().toISOString().split('T')[0]
+  });
+
+  const openBirthModal = (e) => {
+    e.stopPropagation();
+    const randomTag = `C-${cleanTag}-${Math.floor(Math.random() * 900 + 100)}`;
+    setCalfData({
+      name: `Calf of ${animal.name || 'Cattle'}`,
+      tag_number: randomTag,
+      gender: 'Female',
+      breed: animal.breed || '',
+      birth_date: new Date().toISOString().split('T')[0]
+    });
+    setShowBirthModal(true);
+  };
+
+  const handleBirthSubmit = async (e) => {
+    e.preventDefault();
+    if (!calfData.name.trim() || !calfData.tag_number.trim()) {
+      alert('Please fill name and tag number.');
+      return;
+    }
+    setBirthLoading(true);
+    try {
+      // 1. Update mother's pregnant status to Not Pregnant and health status to Healthy
+      const { error: motherErr } = await supabase
+        .from('animals')
+        .update({
+          pregnant_status: 'Not Pregnant',
+          health_status: 'Healthy'
+        })
+        .eq('id', animal.id);
+      
+      if (motherErr) throw motherErr;
+
+      // 2. Insert new calf animal
+      const { error: calfErr } = await supabase
+        .from('animals')
+        .insert([{
+          owner_id: animal.owner_id,
+          name: calfData.name,
+          tag_id: calfData.tag_number,
+          tag_number: calfData.tag_number,
+          type: 'Calf',
+          breed: calfData.breed,
+          gender: calfData.gender,
+          status: 'Baby',
+          health_status: 'Healthy',
+          pregnant_status: 'Not Pregnant',
+          purchase_date: calfData.birth_date,
+          note: `Born to ${animal.name} (Mother Tag: ${cleanTag || 'N/A'})`,
+          calf_mother_type: animal.type === 'Buffalo' ? 'Buffalo' : 'Cow'
+        }]);
+
+      if (calfErr) throw calfErr;
+
+      alert('Calving recorded successfully! Calf has been added and Mother status updated.');
+      setShowBirthModal(false);
+      window.location.reload();
+    } catch (err) {
+      console.error('Error recording birth:', err);
+      alert('Error recording birth: ' + err.message);
+    } finally {
+      setBirthLoading(false);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -324,26 +400,49 @@ const AnimalCard = ({ animal, onEdit, onDelete, onSell, onDeath }) => {
                 <Droplets size={16} />
                 Record Milk
               </button>
-              <button 
-                onClick={(e) => { e.stopPropagation(); window.location.href = `/breeding?animalId=${animal.id}`; }}
-                style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  gap: '6px', 
-                  padding: '12px', 
-                  borderRadius: '14px', 
-                  background: 'white', 
-                  color: 'var(--primary)', 
-                  fontSize: '13px', 
-                  fontWeight: '800',
-                  border: '1.5px solid #E2E8F0'
-                }}
-              >
-                <Activity size={16} />
-                Breeding
-              </button>
+              {animal.pregnant_status === 'Pregnant' || animal.health_status === 'Pregnant' ? (
+                <button 
+                  onClick={openBirthModal}
+                  style={{ 
+                    flex: 1, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '6px', 
+                    padding: '12px', 
+                    borderRadius: '14px', 
+                    background: '#ECFDF5', 
+                    color: '#047857', 
+                    fontSize: '13px', 
+                    fontWeight: '800',
+                    border: '1.5px solid #A7F3D0',
+                    boxShadow: '0 4px 12px rgba(4, 120, 87, 0.05)'
+                  }}
+                >
+                  🍼 Record Calving
+                </button>
+              ) : (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); window.location.href = `/breeding?animalId=${animal.id}`; }}
+                  style={{ 
+                    flex: 1, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '6px', 
+                    padding: '12px', 
+                    borderRadius: '14px', 
+                    background: 'white', 
+                    color: 'var(--primary)', 
+                    fontSize: '13px', 
+                    fontWeight: '800',
+                    border: '1.5px solid #E2E8F0'
+                  }}
+                >
+                  <Activity size={16} />
+                  Breeding
+                </button>
+              )}
             </div>
           ) : (
             <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
@@ -420,6 +519,165 @@ const AnimalCard = ({ animal, onEdit, onDelete, onSell, onDeath }) => {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Calf Birth Modal (Calving Birthday Form) */}
+      {showBirthModal && (
+        <div 
+          onClick={(e) => { e.stopPropagation(); setShowBirthModal(false); }}
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(11, 31, 77, 0.4)', 
+            backdropFilter: 'blur(8px)', 
+            zIndex: 10000, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            padding: '20px' 
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card animate-scale-up" 
+            style={{ 
+              width: '100%', 
+              maxWidth: '450px', 
+              background: 'white', 
+              padding: '24px', 
+              borderRadius: '28px', 
+              boxShadow: '0 25px 50px rgba(0,0,0,0.15)', 
+              position: 'relative', 
+              zIndex: 10001 
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0, color: '#0B1F4D' }}>🍼 Calf Birth Details</h2>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  Register birth for mother {animal.name} ({cleanTag})
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowBirthModal(false)} 
+                style={{ background: '#F8FAFC', border: 'none', color: '#64748B', padding: '6px', borderRadius: '10px', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleBirthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '6px', textTransform: 'uppercase' }}>
+                  Calf Name (बछड़े का नाम)
+                </label>
+                <input 
+                  type="text" 
+                  value={calfData.name}
+                  onChange={(e) => setCalfData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Calf of Ganga"
+                  style={{ width: '100%', padding: '12px 16px', background: '#F1F5F9', border: '2px solid transparent', borderRadius: '12px', fontSize: '14px', fontWeight: '700', color: '#0F172A' }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '6px', textTransform: 'uppercase' }}>
+                    Calf Tag / ID (टैग संख्या)
+                  </label>
+                  <input 
+                    type="text" 
+                    value={calfData.tag_number}
+                    onChange={(e) => setCalfData(prev => ({ ...prev, tag_number: e.target.value }))}
+                    placeholder="Tag #"
+                    style={{ width: '100%', padding: '12px 16px', background: '#F1F5F9', border: '2px solid transparent', borderRadius: '12px', fontSize: '14px', fontWeight: '700', color: '#0F172A' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '6px', textTransform: 'uppercase' }}>
+                    Breed (नस्ल)
+                  </label>
+                  <input 
+                    type="text" 
+                    value={calfData.breed}
+                    onChange={(e) => setCalfData(prev => ({ ...prev, breed: e.target.value }))}
+                    placeholder="e.g. Gir, Sahiwal"
+                    style={{ width: '100%', padding: '12px 16px', background: '#F1F5F9', border: '2px solid transparent', borderRadius: '12px', fontSize: '14px', fontWeight: '700', color: '#0F172A' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '6px', textTransform: 'uppercase' }}>
+                  Calf Gender (बछड़े का लिंग)
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '12px', gap: '4px' }}>
+                  {['Male', 'Female'].map((gen) => (
+                    <button
+                      key={gen}
+                      type="button"
+                      onClick={() => setCalfData(prev => ({ ...prev, gender: gen }))}
+                      style={{ 
+                        padding: '10px', 
+                        borderRadius: '10px', 
+                        border: 'none', 
+                        fontSize: '13px', 
+                        fontWeight: '800',
+                        background: calfData.gender === gen ? 'white' : 'transparent',
+                        color: calfData.gender === gen ? '#0B1F4D' : '#64748B',
+                        boxShadow: calfData.gender === gen ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                        cursor: 'pointer',
+                        transition: '0.2s'
+                      }}
+                    >
+                      {gen === 'Male' ? 'Male (बछड़ा)' : 'Female (बछड़ी)'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '6px', textTransform: 'uppercase' }}>
+                  Birth Date (जन्म तिथि)
+                </label>
+                <input 
+                  type="date" 
+                  value={calfData.birth_date}
+                  onChange={(e) => setCalfData(prev => ({ ...prev, birth_date: e.target.value }))}
+                  style={{ width: '100%', padding: '12px 16px', background: '#F1F5F9', border: '2px solid transparent', borderRadius: '12px', fontSize: '14px', fontWeight: '700', color: '#0F172A' }}
+                  required
+                />
+              </div>
+
+              <button 
+                type="submit"
+                disabled={birthLoading}
+                style={{ 
+                  width: '100%', 
+                  padding: '14px', 
+                  background: 'linear-gradient(135deg, #05163D 0%, #0B1F4D 100%)', 
+                  color: 'white', 
+                  borderRadius: '12px', 
+                  border: 'none', 
+                  fontSize: '15px', 
+                  fontWeight: '800', 
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 16px rgba(11, 31, 77, 0.2)',
+                  marginTop: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  opacity: birthLoading ? 0.7 : 1
+                }}
+              >
+                {birthLoading ? 'Saving...' : 'Save Birth Details (जन्म सहेजें)'}
+              </button>
+            </form>
           </div>
         </div>
       )}

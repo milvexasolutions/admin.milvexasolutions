@@ -28,7 +28,9 @@ const EditAnimal = () => {
     status: 'Milch',
     health_status: 'Healthy',
     purchase_price: '',
-    purchase_date: ''
+    purchase_date: '',
+    gender: 'Female',
+    calf_mother_type: 'Cow'
   });
 
   useEffect(() => {
@@ -51,7 +53,9 @@ const EditAnimal = () => {
             status: data.status || 'Milch',
             health_status: data.health_status || 'Healthy',
             purchase_price: data.purchase_price || '',
-            purchase_date: data.purchase_date || ''
+            purchase_date: data.purchase_date || '',
+            gender: data.gender || 'Female',
+            calf_mother_type: data.calf_mother_type || 'Cow'
           });
         }
       } catch (err) {
@@ -96,13 +100,14 @@ const EditAnimal = () => {
           name: formData.name,
           tag_id: finalTagId,
           tag_number: finalTagNumber,
-          type: formData.type === 'Calf' || formData.type === 'Bull' ? 'Cow' : formData.type,
+          type: formData.type,
           breed: formData.breed,
           status: formData.type === 'Calf' ? 'Baby' : formData.status,
           health_status: formData.health_status,
           purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
           purchase_date: formData.purchase_date,
-          gender: formData.type === 'Bull' ? 'Male' : 'Female'
+          gender: formData.type === 'Bull' ? 'Male' : (formData.type === 'Calf' ? formData.gender : 'Female'),
+          calf_mother_type: formData.type === 'Calf' ? formData.calf_mother_type : null
         })
         .eq('id', id);
 
@@ -129,7 +134,7 @@ const EditAnimal = () => {
     <div className="animate-fade-in" style={{ 
       background: '#F8FAFC', 
       minHeight: '100vh', 
-      paddingTop: 'calc(var(--safe-top) + 80px)',
+      paddingTop: 'calc(var(--safe-top) + 88px)',
       paddingBottom: '40px' 
     }}>
       <PageHeader title="Edit Animal Details" showBack={true} />
@@ -240,6 +245,64 @@ const EditAnimal = () => {
                 ))}
               </div>
             </div>
+
+            {/* Calf Mother Type Selector */}
+            {formData.type === 'Calf' && (
+              <div className="animate-fade-in">
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>Calf Type (बछड़े का प्रकार)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '16px', gap: '4px' }}>
+                  {['Cow', 'Buffalo'].map((mType) => (
+                    <button
+                      key={mType}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, calf_mother_type: mType }))}
+                      style={{ 
+                        padding: '12px', 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        fontSize: '14px', 
+                        fontWeight: '800',
+                        background: formData.calf_mother_type === mType ? 'white' : 'transparent',
+                        color: formData.calf_mother_type === mType ? '#0B1F4D' : '#64748B',
+                        boxShadow: formData.calf_mother_type === mType ? '0 4px 10px rgba(0,0,0,0.05)' : 'none',
+                        transition: '0.2s'
+                      }}
+                    >
+                      {mType === 'Cow' ? 'Cow Calf (गाय का बछड़ा)' : 'Buffalo Calf (भैंस का बछड़ा)'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Calf Gender Selector */}
+            {formData.type === 'Calf' && (
+              <div className="animate-fade-in">
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>Calf Gender (बछड़े का लिंग)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '16px', gap: '4px' }}>
+                  {['Male', 'Female'].map((gen) => (
+                    <button
+                      key={gen}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, gender: gen }))}
+                      style={{ 
+                        padding: '12px', 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        fontSize: '14px', 
+                        fontWeight: '800',
+                        background: formData.gender === gen ? 'white' : 'transparent',
+                        color: formData.gender === gen ? '#0B1F4D' : '#64748B',
+                        boxShadow: formData.gender === gen ? '0 4px 10px rgba(0,0,0,0.05)' : 'none',
+                        transition: '0.2s'
+                      }}
+                    >
+                      {gen === 'Male' ? 'Male (बछड़ा)' : 'Female (बछड़ी)'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Breed</label>

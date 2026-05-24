@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Save, ArrowUpRight, ArrowDownLeft, Wallet } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import PageHeader from '../components/PageHeader';
 
 const categories = {
   Expense: ['Feed', 'Medicine', 'Salary', 'Doctor Fee', 'Electricity', 'Maintenance', 'Animal Purchase', 'Other'],
-  Income: ['Milk Sale', 'Society Payment', 'Animal Sale', 'Manure Sale', 'Other']
+  Income: ['Dairy Salary', 'Animal Sale', 'Milk Sale', 'Other'],
+  'Cash Withdraw': ['Cash Withdraw']
 };
 
 const EditTransaction = () => {
@@ -38,18 +39,21 @@ const EditTransaction = () => {
   if (fetching) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="loading-spinner" /></div>;
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingTop: 'calc(var(--safe-top) + 80px)', paddingBottom: '40px' }}>
+    <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingTop: 'calc(var(--safe-top) + 88px)', paddingBottom: '40px' }}>
       <PageHeader title="Edit Transaction" showBack={true} />
       <form onSubmit={handleSubmit} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ background: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
             <label style={lbl}>Type</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <button type="button" onClick={() => setFormData({...formData, type: 'Income', category: 'Milk Sale'})} style={{ padding: '13px', borderRadius: '14px', border: 'none', fontSize: '14px', fontWeight: '800', cursor: 'pointer', background: formData.type === 'Income' ? '#10B981' : '#F1F5F9', color: formData.type === 'Income' ? 'white' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <ArrowUpRight size={16} /> Income
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              <button type="button" onClick={() => setFormData({...formData, type: 'Income', category: 'Milk Sale'})} style={{ padding: '12px 6px', borderRadius: '12px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: formData.type === 'Income' ? '#10B981' : '#F1F5F9', color: formData.type === 'Income' ? 'white' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <ArrowUpRight size={14} /> Income
               </button>
-              <button type="button" onClick={() => setFormData({...formData, type: 'Expense', category: 'Feed'})} style={{ padding: '13px', borderRadius: '14px', border: 'none', fontSize: '14px', fontWeight: '800', cursor: 'pointer', background: formData.type === 'Expense' ? '#EF4444' : '#F1F5F9', color: formData.type === 'Expense' ? 'white' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <ArrowDownLeft size={16} /> Expense
+              <button type="button" onClick={() => setFormData({...formData, type: 'Expense', category: 'Feed'})} style={{ padding: '12px 6px', borderRadius: '12px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: formData.type === 'Expense' ? '#EF4444' : '#F1F5F9', color: formData.type === 'Expense' ? 'white' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <ArrowDownLeft size={14} /> Expense
+              </button>
+              <button type="button" onClick={() => setFormData({...formData, type: 'Cash Withdraw', category: 'Cash Withdraw'})} style={{ padding: '12px 6px', borderRadius: '12px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: formData.type === 'Cash Withdraw' ? '#F97316' : '#F1F5F9', color: formData.type === 'Cash Withdraw' ? 'white' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <Wallet size={14} /> Withdraw
               </button>
             </div>
           </div>

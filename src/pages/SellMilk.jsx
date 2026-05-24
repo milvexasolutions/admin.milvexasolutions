@@ -10,6 +10,8 @@ const SellMilk = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [receiptImage, setReceiptImage] = useState(null);
+  const [societies, setSocieties] = useState([]);
+  const [ledgerPeriods, setLedgerPeriods] = useState([]);
   const [formData, setFormData] = useState({
     society: '',
     quantity: '',
@@ -20,10 +22,42 @@ const SellMilk = () => {
     date: new Date().toISOString().split('T')[0]
   });
 
-  // Calculate period based on date
-  const getPeriod = (dateStr) => {
-    const day = new Date(dateStr).getDate();
-    return day <= 15 ? '1 to 15' : '16 to 31';
+  useEffect(() => {
+    if (user) {
+      const fetchData = async () => {
+        const { data: socData } = await supabase.from('societies').select('name');
+        setSocieties(socData || []);
+
+        const { data: ledgerData } = await supabase.from('dairy_ledger').select('dairy_name, period_start, period_end');
+        setLedgerPeriods(ledgerData || []);
+      };
+      fetchData();
+    }
+  }, [user]);
+
+  // Calculate period dynamically from dairy_ledger
+  const getPeriod = () => {
+    if (!formData.society || !formData.date) return 'Select Dairy & Date';
+    
+    const targetDate = new Date(formData.date);
+    targetDate.setHours(12, 0, 0, 0); // Midday to avoid timezone issues
+    
+    const match = ledgerPeriods.find(l => {
+      if (l.dairy_name !== formData.society) return false;
+      const start = new Date(l.period_start);
+      const end = new Date(l.period_end);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      return targetDate >= start && targetDate <= end;
+    });
+
+    if (match) {
+      const sDate = new Date(match.period_start);
+      const eDate = new Date(match.period_end);
+      return `${sDate.getDate()} ${sDate.toLocaleString('default', { month: 'short' })} to ${eDate.getDate()} ${eDate.toLocaleString('default', { month: 'short' })}`;
+    }
+    
+    return 'No Period Set';
   };
 
   const totalPrice = (parseFloat(formData.quantity) || 0) * (parseFloat(formData.price_per_liter) || 0);
@@ -101,7 +135,7 @@ const SellMilk = () => {
     <div className="animate-fade-in" style={{ 
       background: '#F8FAFC', 
       minHeight: '100vh', 
-      paddingTop: 'calc(var(--safe-top) + 80px)',
+      paddingTop: 'calc(var(--safe-top) + 88px)',
       paddingBottom: '40px' 
     }}>
       <PageHeader title="Sell Milk" showBack={true} />
@@ -119,16 +153,31 @@ const SellMilk = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Society / Dairy Name</label>
-              <input 
-                type="text" 
-                name="society"
-                value={formData.society}
-                onChange={handleChange}
-                placeholder="e.g. Amul, Mother Dairy"
-                style={{ width: '100%', padding: '14px 20px', background: '#F1F5F9', border: 'none', borderRadius: '16px', fontSize: '15px', fontWeight: '700', color: '#0F172A' }}
-                required
-              />
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Dairy Name</label>
+              {societies.length > 0 ? (
+                <select 
+                  name="society"
+                  value={formData.society}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '14px 20px', background: '#F1F5F9', border: 'none', borderRadius: '16px', fontSize: '15px', fontWeight: '700', color: '#0F172A' }}
+                  required
+                >
+                  <option value="" disabled>Select a Dairy</option>
+                  {societies.map((s, idx) => (
+                    <option key={idx} value={s.name}>{s.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <input 
+                  type="text" 
+                  name="society"
+                  value={formData.society}
+                  onChange={handleChange}
+                  placeholder="e.g. Amul, Mother Dairy"
+                  style={{ width: '100%', padding: '14px 20px', background: '#F1F5F9', border: 'none', borderRadius: '16px', fontSize: '15px', fontWeight: '700', color: '#0F172A' }}
+                  required
+                />
+              )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -145,7 +194,7 @@ const SellMilk = () => {
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Period (Auto)</label>
                 <div style={{ width: '100%', padding: '14px 16px', background: '#E2E8F0', borderRadius: '16px', fontSize: '14px', fontWeight: '800', color: '#475569' }}>
-                  {getPeriod(formData.date)}
+                  {getPeriod()}
                 </div>
               </div>
             </div>

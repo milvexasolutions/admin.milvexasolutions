@@ -20,13 +20,22 @@ import {
   Send,
   Loader2,
   MessageSquare,
-  Trash2
+  Trash2,
+  Languages,
+  Bell,
+  AlertCircle,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { scheduleDailyReminders } from '../lib/notifications';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import PageHeader from '../components/PageHeader';
+import { useTranslation } from 'react-i18next';
 
 const Settings = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -56,6 +65,85 @@ const Settings = () => {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
 
+  const [permissionStatus, setPermissionStatus] = useState('prompt');
+  const [prefs, setPrefs] = useState({
+    morningMilk: true,
+    eveningMilk: true,
+    breedingAlerts: true
+  });
+
+  useEffect(() => {
+    const checkNotificationPermissions = async () => {
+      try {
+        const status = await LocalNotifications.checkPermissions();
+        setPermissionStatus(status.display);
+      } catch (e) {
+        console.error('Error checking notification permissions:', e);
+      }
+    };
+    checkNotificationPermissions();
+  }, []);
+
+  const requestPermission = async () => {
+    try {
+      const status = await LocalNotifications.requestPermissions();
+      setPermissionStatus(status.display);
+      if (status.display === 'granted') {
+        await scheduleDailyReminders();
+        alert('Notifications enabled successfully!');
+      } else {
+        alert('Notifications permission denied.');
+      }
+    } catch (e) {
+      console.error('Error requesting permissions:', e);
+    }
+  };
+
+  const triggerTestNotification = async () => {
+    try {
+      const status = await LocalNotifications.checkPermissions();
+      if (status.display !== 'granted') {
+        const req = await LocalNotifications.requestPermissions();
+        if (req.display !== 'granted') {
+          alert('Please enable notifications first.');
+          return;
+        }
+      }
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: 998,
+            title: "Milvexa Notification Test! 🐄",
+            body: "Active notification check is working perfectly from Settings.",
+            schedule: { at: new Date(Date.now() + 3000) },
+            sound: null,
+            attachments: null,
+            actionTypeId: "",
+            extra: null
+          }
+        ]
+      });
+      alert('Test notification scheduled in 3 seconds!');
+    } catch (e) {
+      console.error('Error sending test notification:', e);
+    }
+  };
+
+  const togglePref = (key) => {
+    setPrefs(prev => {
+      const updated = { ...prev, [key]: !prev[key] };
+      if (key === 'morningMilk' || key === 'eveningMilk') {
+        if (!updated.morningMilk && !updated.eveningMilk) {
+          LocalNotifications.cancel({ notifications: [{ id: 101 }, { id: 102 }] });
+        } else {
+          scheduleDailyReminders();
+        }
+      }
+      return updated;
+    });
+  };
+
 
 
   const [loginSession, setLoginSession] = useState({
@@ -64,23 +152,84 @@ const Settings = () => {
     location: 'Ahmedabad, Gujarat, India'
   });
 
+  const [deviceInfo, setDeviceInfo] = useState('Web Browser on Device');
 
+  // Manual Version Check States
+  const [updateCheckState, setUpdateCheckState] = useState('idle'); // 'idle' | 'checking' | 'up-to-date' | 'error'
+  const [updateErrorMsg, setUpdateErrorMsg] = useState('');
 
-  const getDeviceInfo = () => {
-    const ua = navigator.userAgent;
-    let browser = "Web Browser";
-    let os = "Desktop Device";
-    if (ua.indexOf("Chrome") > -1) browser = "Google Chrome";
-    else if (ua.indexOf("Safari") > -1) browser = "Apple Safari";
-    else if (ua.indexOf("Firefox") > -1) browser = "Mozilla Firefox";
-    else if (ua.indexOf("Edge") > -1) browser = "Microsoft Edge";
+  useEffect(() => {
+    window.onUpdateStatusCallback = (status) => {
+      if (status.isUpToDate) {
+        setUpdateCheckState('up-to-date');
+      } else if (status.error) {
+        setUpdateCheckState('error');
+        setUpdateErrorMsg(status.error);
+      } else {
+        setUpdateCheckState('idle');
+      }
+    };
+    return () => {
+      delete window.onUpdateStatusCallback;
+    };
+  }, []);
 
-    if (ua.indexOf("Windows") > -1) os = "Windows PC";
-    else if (ua.indexOf("Mac") > -1) os = "Macintosh Desktop";
-    else if (ua.indexOf("Android") > -1) os = "Android Mobile";
-    else if (ua.indexOf("iPhone") > -1) os = "iPhone Device";
-    return `${browser} on ${os}`;
+  const handleCheckForUpdatesManual = () => {
+    if (typeof window.globalHandleCheckUpdates === 'function') {
+      setUpdateCheckState('checking');
+      setUpdateErrorMsg('');
+      window.globalHandleCheckUpdates(true);
+    } else {
+      alert("Update checker is initializing. Please try again.");
+    }
   };
+
+  useEffect(() => {
+    const detectDevice = async () => {
+      const ua = navigator.userAgent;
+      let browser = "Web Browser";
+      let os = "Device";
+
+      if (ua.indexOf("Chrome") > -1) browser = "Google Chrome";
+      else if (ua.indexOf("Safari") > -1) browser = "Apple Safari";
+      else if (ua.indexOf("Firefox") > -1) browser = "Mozilla Firefox";
+      else if (ua.indexOf("Edge") > -1) browser = "Microsoft Edge";
+
+      if (ua.indexOf("Windows") > -1) os = "Windows PC";
+      else if (ua.indexOf("Mac") > -1) os = "Macintosh Desktop";
+      else if (ua.indexOf("iPhone") > -1) os = "iPhone Device";
+      else if (ua.indexOf("iPad") > -1) os = "iPad Device";
+      else if (ua.indexOf("Android") > -1) {
+        const match = ua.match(/Android\s+[^;]+;\s+([^;)]+)/);
+        if (match && match[1]) {
+          os = match[1].trim();
+        } else {
+          os = "Android Phone";
+        }
+      }
+
+      if (navigator.userAgentData) {
+        try {
+          const highEntropy = await navigator.userAgentData.getHighEntropyValues(['model', 'platform', 'platformVersion']);
+          if (highEntropy.model) {
+            os = highEntropy.model;
+          } else if (highEntropy.platform) {
+            let plat = highEntropy.platform;
+            if (plat === "Windows") os = "Windows PC";
+            else if (plat === "macOS") os = "Mac";
+            else if (plat === "Android") os = "Android Phone";
+            else if (plat === "iOS") os = "iPhone";
+            else os = plat;
+          }
+        } catch (e) {
+          console.log('High entropy UA detection failed', e);
+        }
+      }
+      setDeviceInfo(`${browser} on ${os}`);
+    };
+
+    detectDevice();
+  }, []);
 
   useEffect(() => {
     const now = new Date();
@@ -89,23 +238,78 @@ const Settings = () => {
     
     const getSessionDetails = async () => {
       let loc = 'Ahmedabad, Gujarat, India';
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.city && data.region && data.country_name) {
-            loc = `${data.city}, ${data.region}, ${data.country_name}`;
+
+      const fetchIpLocation = async () => {
+        try {
+          const res = await fetch('https://ipapi.co/json/');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.city && data.region && data.country_name) {
+              return `${data.city}, ${data.region}, ${data.country_name}`;
+            }
           }
+        } catch (e) {
+          console.log('IP Location fetch failed', e);
         }
-      } catch (e) {
-        console.log('Location fetch failed, using default Ahmedabad');
+        return 'Ahmedabad, Gujarat, India';
+      };
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            try {
+              const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`);
+              if (geoRes.ok) {
+                const geoData = await geoRes.json();
+                const address = geoData.address;
+                const city = address.city || address.town || address.village || address.suburb || '';
+                const state = address.state || address.region || '';
+                const country = address.country || '';
+                if (city || state || country) {
+                  const locParts = [city, state, country].filter(Boolean);
+                  loc = locParts.join(', ');
+                  setLoginSession({
+                    time: formattedTime,
+                    date: formattedDate,
+                    location: loc
+                  });
+                  return;
+                }
+              }
+            } catch (e) {
+              console.log('Reverse geocoding failed', e);
+            }
+            
+            loc = await fetchIpLocation();
+            setLoginSession({
+              time: formattedTime,
+              date: formattedDate,
+              location: loc
+            });
+          },
+          async (error) => {
+            console.log('Geolocation permission denied or timed out, getting IP location');
+            loc = await fetchIpLocation();
+            setLoginSession({
+              time: formattedTime,
+              date: formattedDate,
+              location: loc
+            });
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        loc = await fetchIpLocation();
+        setLoginSession({
+          time: formattedTime,
+          date: formattedDate,
+          location: loc
+        });
       }
-      setLoginSession({
-        time: formattedTime,
-        date: formattedDate,
-        location: loc
-      });
     };
+
     getSessionDetails();
   }, []);
 
@@ -218,7 +422,7 @@ const Settings = () => {
     }
   }, [emailOtpCountdown]);
 
-  const sendEmailOTP = (e) => {
+  const sendEmailOTP = async (e) => {
     if (e) e.preventDefault();
     if (!emailData.newEmail.trim()) {
       alert("Please enter a valid email address.");
@@ -226,39 +430,52 @@ const Settings = () => {
     }
     
     setEmailLoading(true);
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email: emailData.newEmail
+      });
+      if (error) throw error;
+      
       setEmailOtpSent(true);
       setEmailOtpCountdown(60);
+      alert('Verification OTP has been sent to your new email: ' + emailData.newEmail + '. Please check your inbox/spam folder.');
+    } catch (err) {
+      console.error('Error sending email OTP:', err);
+      alert('Error: ' + err.message);
+    } finally {
       setEmailLoading(false);
-      alert('Verification OTP code 123456 sent to your new email: ' + emailData.newEmail);
-    }, 1200);
+    }
   };
 
   const verifyEmailOTP = async (e) => {
     e.preventDefault();
-    if (emailOtpCode === '123456') {
-      setEmailLoading(true);
-      try {
-        const { error } = await supabase.auth.updateUser({
-          email: emailData.newEmail
-        });
-        if (error) throw error;
-        
-        alert('Email changed successfully to ' + emailData.newEmail + '!');
-        setEmailData({ newEmail: '' });
-        setEmailOtpSent(false);
-        setEmailOtpCode('');
-        setOpenSection(null);
-      } catch (err) {
-        console.error('Error verifying email OTP:', err);
-        alert('Error updating email: ' + err.message);
-      } finally {
-        setEmailLoading(false);
-      }
-    } else {
-      alert('Invalid OTP code! Please enter 123456.');
+    if (!emailOtpCode.trim()) {
+      alert("Please enter the verification OTP code.");
+      return;
+    }
+    
+    setEmailLoading(true);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: emailData.newEmail,
+        token: emailOtpCode,
+        type: 'email_change'
+      });
+      if (error) throw error;
+      
+      alert('Email changed successfully to ' + emailData.newEmail + '!');
+      setEmailData({ newEmail: '' });
+      setEmailOtpSent(false);
+      setEmailOtpCode('');
+      setOpenSection(null);
+    } catch (err) {
+      console.error('Error verifying email OTP:', err);
+      alert('Error: ' + err.message);
+    } finally {
+      setEmailLoading(false);
     }
   };
+
 
   // Google Drive states
   const [gdriveConnected, setGdriveConnected] = useState(false);
@@ -285,6 +502,99 @@ const Settings = () => {
   const handleToggleAutoBackup = () => {
     setAutoBackup(prev => !prev);
   };
+
+  // LocalStorage Offline Auto-Backup states
+  const [localAutoBackup, setLocalAutoBackup] = useState(() => {
+    return localStorage.getItem('milvexa_local_auto_backup_enabled') !== 'false';
+  });
+  const [localBackup, setLocalBackup] = useState(() => {
+    try {
+      const raw = localStorage.getItem('milvexa_local_backups');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const handleToggleLocalAutoBackup = () => {
+    setLocalAutoBackup(prev => {
+      const newVal = !prev;
+      localStorage.setItem('milvexa_local_auto_backup_enabled', newVal.toString());
+      return newVal;
+    });
+  };
+
+  const generateLocalBackup = (isAuto = false) => {
+    try {
+      const backupData = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key !== 'milvexa_local_backups' && key !== 'milvexa_local_auto_backup_enabled') {
+          backupData[key] = localStorage.getItem(key);
+        }
+      }
+      
+      const newBackup = {
+        timestamp: Date.now(),
+        date: new Date().toLocaleString(),
+        size: (JSON.stringify(backupData).length / 1024).toFixed(2) + ' KB',
+        data: backupData,
+        isAuto
+      };
+
+      // Always overwrite the previous slot to keep exactly one single updated file!
+      localStorage.setItem('milvexa_local_backups', JSON.stringify(newBackup));
+      setLocalBackup(newBackup);
+      
+      if (!isAuto) {
+        alert('Offline LocalStorage backup updated successfully!');
+      }
+    } catch (err) {
+      console.error(err);
+      if (!isAuto) {
+        alert('Failed to update local backup. Storage quota may be full.');
+      }
+    }
+  };
+
+  const restoreLocalBackup = () => {
+    if (!localBackup) return;
+    if (window.confirm(`Are you sure you want to restore data from backup dated ${localBackup.date}? This will overwrite all your current local settings and offline cache.`)) {
+      try {
+        const currentBackups = localStorage.getItem('milvexa_local_backups');
+        const autoBackupEnabled = localStorage.getItem('milvexa_local_auto_backup_enabled');
+        
+        localStorage.clear();
+        
+        if (currentBackups) localStorage.setItem('milvexa_local_backups', currentBackups);
+        if (autoBackupEnabled) localStorage.setItem('milvexa_local_auto_backup_enabled', autoBackupEnabled);
+
+        Object.entries(localBackup.data).forEach(([key, val]) => {
+          localStorage.setItem(key, val);
+        });
+
+        alert('Backup restored successfully! The page will now reload to apply changes.');
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to restore backup: ' + err.message);
+      }
+    }
+  };
+
+  const deleteLocalBackup = () => {
+    if (window.confirm('Are you sure you want to delete this backup file?')) {
+      localStorage.removeItem('milvexa_local_backups');
+      setLocalBackup(null);
+    }
+  };
+
+  useEffect(() => {
+    const isEnabled = localStorage.getItem('milvexa_local_auto_backup_enabled') !== 'false';
+    if (isEnabled) {
+      generateLocalBackup(true);
+    }
+  }, []);
 
   // Account Control states
   const [deactivateLoading, setDeactivateLoading] = useState(false);
@@ -410,19 +720,19 @@ const Settings = () => {
   );
 
   return (
-    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px', paddingTop: 'calc(var(--safe-top) + 80px)' }}>
-      <PageHeader title="App Settings" showBack={true} />
+    <div className="animate-fade-in" style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px', paddingTop: 'calc(var(--safe-top) + 88px)' }}>
+      <PageHeader title={t('settings', 'App Settings')} showBack={true} />
       
       <div style={{ padding: '24px 20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '28px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
           
           {/* 1. PERSONAL INFO */}
           <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
-            {renderSectionHeader('personal', 'Personal Info', User, openSection === 'personal')}
+            {renderSectionHeader('personal', t('profile', 'Personal Info'), User, openSection === 'personal')}
             {openSection === 'personal' && (
               <form onSubmit={handleProfileSave} className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Full Name</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('owner_user_name', 'Full Name')}</label>
                   <input 
                     type="text" 
                     value={profile.full_name}
@@ -433,7 +743,7 @@ const Settings = () => {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Phone Number</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('phone_number', 'Phone Number')}</label>
                   <input 
                     type="tel" 
                     value={profile.phone}
@@ -452,7 +762,7 @@ const Settings = () => {
                   />
                 </div>
                 <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: '#0B1F4D', color: 'white', border: 'none', borderRadius: '14px', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 8px 20px rgba(11, 31, 77, 0.2)' }}>
-                  <Save size={18} /> {loading ? 'Saving...' : 'Save Personal Details'}
+                  <Save size={18} /> {loading ? t('saving', 'Saving...') : t('save_changes', 'Save Personal Details')}
                 </button>
               </form>
             )}
@@ -460,11 +770,11 @@ const Settings = () => {
 
           {/* 2. FARM INFO */}
           <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
-            {renderSectionHeader('farm', 'Farm Info', Building2, openSection === 'farm')}
+            {renderSectionHeader('farm', t('farm_profile', 'Farm Info'), Building2, openSection === 'farm')}
             {openSection === 'farm' && (
               <form onSubmit={handleProfileSave} className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Farm Name</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('farm_name', 'Farm Name')}</label>
                   <input 
                     type="text" 
                     value={profile.farm_name}
@@ -501,13 +811,73 @@ const Settings = () => {
             )}
           </div>
 
+          {/* 2b. APP LANGUAGE */}
+          <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
+            {renderSectionHeader('language', t('app_language', 'App Language'), Languages, openSection === 'language')}
+            {openSection === 'language' && (
+              <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '4px', textTransform: 'uppercase' }}>Select App Language</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                  {[
+                    { code: 'en', name: 'English', native: 'English' },
+                    { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
+                    { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી' }
+                  ].map((lang) => {
+                    const isSelected = i18n.language === lang.code || (lang.code === 'en' && i18n.language?.startsWith('en')) || (lang.code === 'en' && !i18n.language);
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={async () => {
+                          i18n.changeLanguage(lang.code);
+                          localStorage.setItem('i18nextLng', lang.code);
+                          try {
+                            const status = await LocalNotifications.checkPermissions();
+                            if (status.display === 'granted') {
+                              await scheduleDailyReminders();
+                            }
+                          } catch (e) {
+                            console.error('Error scheduling daily reminders on lang change:', e);
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '16px 20px',
+                          background: isSelected ? 'rgba(11, 31, 77, 0.05)' : 'white',
+                          border: isSelected ? '2px solid #0B1F4D' : '2px solid #E2E8F0',
+                          borderRadius: '16px',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: '0.2s',
+                          boxShadow: isSelected ? '0 8px 20px rgba(11, 31, 77, 0.05)' : 'none'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '16px', fontWeight: '800', color: '#0B1F4D' }}>{lang.native}</div>
+                          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>{lang.name}</div>
+                        </div>
+                        {isSelected && (
+                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#0B1F4D', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                            <CheckCircle2 size={16} color="white" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* 3. CHANGE PASSWORD */}
           <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
-            {renderSectionHeader('password', 'Change Password', KeyRound, openSection === 'password')}
+            {renderSectionHeader('password', t('change_password', 'Change Password'), KeyRound, openSection === 'password')}
             {openSection === 'password' && (
               <form onSubmit={handlePasswordChange} className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Old Password</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('old_password', 'Old Password')}</label>
                   <input 
                     type="password" 
                     value={passwordData.oldPassword}
@@ -518,18 +888,18 @@ const Settings = () => {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>New Password</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('new_password', 'New Password')}</label>
                   <input 
                     type="password" 
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                    placeholder="•••••••• (Min 6 chars)"
+                    placeholder={t('placeholder_pwd_min', '•••••••• (Min 6 chars)')}
                     style={{ width: '100%', padding: '14px 16px', background: '#F1F5F9', border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: '700', color: '#0F172A' }}
                     required
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Repeat New Password</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('repeat_new_password', 'Repeat New Password')}</label>
                   <input 
                     type="password" 
                     value={passwordData.confirmPassword}
@@ -540,7 +910,7 @@ const Settings = () => {
                   />
                 </div>
                 <button type="submit" disabled={passwordLoading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #05163D 0%, #0B1F4D 100%)', color: 'white', border: 'none', borderRadius: '14px', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 8px 20px rgba(11, 31, 77, 0.2)' }}>
-                  {passwordLoading ? 'Updating Password...' : 'Change Password'}
+                  {passwordLoading ? t('updating_password', 'Updating Password...') : t('change_password', 'Change Password')}
                 </button>
               </form>
             )}
@@ -548,13 +918,13 @@ const Settings = () => {
 
           {/* 3b. CHANGE EMAIL ADDRESS */}
           <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
-            {renderSectionHeader('email', 'Change Email Address', Mail, openSection === 'email')}
+            {renderSectionHeader('email', t('change_email', 'Change Email Address'), Mail, openSection === 'email')}
             {openSection === 'email' && (
               <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ padding: '16px', background: '#EFF6FF', borderRadius: '16px', border: '1px solid #BFDBFE', display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <Mail size={24} color="#2563EB" />
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#1E3A8A' }}>Current Account Email</h4>
+                    <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#1E3A8A' }}>{t('current_account_email', 'Current Account Email')}</h4>
                     <p style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: '900', color: '#1D4ED8' }}>{user?.email || 'N/A'}</p>
                   </div>
                 </div>
@@ -562,12 +932,12 @@ const Settings = () => {
                 {!emailOtpSent ? (
                   <form onSubmit={sendEmailOTP} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>New Email Address</label>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('new_email_address', 'New Email Address')}</label>
                       <input 
                         type="email" 
                         value={emailData.newEmail}
                         onChange={(e) => setEmailData({...emailData, newEmail: e.target.value})}
-                        placeholder="Enter new email address"
+                        placeholder={t('placeholder_new_email', 'Enter new email address')}
                         style={{ width: '100%', padding: '14px 16px', background: '#F1F5F9', border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: '700', color: '#0F172A' }}
                         required
                       />
@@ -575,26 +945,26 @@ const Settings = () => {
 
                     <button type="submit" disabled={emailLoading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #05163D 0%, #0B1F4D 100%)', color: 'white', border: 'none', borderRadius: '14px', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 8px 20px rgba(11, 31, 77, 0.2)' }}>
                       {emailLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                      Send Verification OTP
+                      {t('send_verification_otp', 'Send Verification OTP')}
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={verifyEmailOTP} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', textTransform: 'uppercase' }}>New Email</span>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', textTransform: 'uppercase' }}>{t('new_email', 'New Email')}</span>
                         <p style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: '700', color: '#0F172A' }}>{emailData.newEmail}</p>
                       </div>
                       <span 
                         onClick={() => setEmailOtpSent(false)} 
                         style={{ fontSize: '12px', fontWeight: '800', color: '#2563EB', cursor: 'pointer', textDecoration: 'underline' }}
                       >
-                        Edit
+                        {t('edit', 'Edit')}
                       </span>
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Enter 6-Digit OTP</label>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('enter_otp', 'Enter 6-Digit OTP')}</label>
                       <input 
                         type="text" 
                         maxLength="6"
@@ -605,8 +975,8 @@ const Settings = () => {
                         required
                       />
                       <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '600', textAlign: 'center' }}>
-                        {emailOtpCountdown > 0 ? `Resend OTP in ${emailOtpCountdown}s` : (
-                          <span onClick={() => sendEmailOTP(null)} style={{ color: '#0B1F4D', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline' }}>Resend OTP code</span>
+                        {emailOtpCountdown > 0 ? t('resend_otp_in', 'Resend OTP in {{seconds}}s').replace('{{seconds}}', emailOtpCountdown) : (
+                          <span onClick={() => sendEmailOTP(null)} style={{ color: '#0B1F4D', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline' }}>{t('resend_otp_code', 'Resend OTP code')}</span>
                         )}
                       </p>
                       
@@ -626,7 +996,7 @@ const Settings = () => {
 
                     <button type="submit" disabled={emailLoading} style={{ width: '100%', padding: '16px', background: '#10B981', color: 'white', border: 'none', borderRadius: '14px', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
                       {emailLoading ? <Loader2 className="animate-spin" size={18} /> : null}
-                      Verify & Update Email
+                      {t('verify_update_email', 'Verify & Update Email')}
                     </button>
                   </form>
                 )}
@@ -637,7 +1007,7 @@ const Settings = () => {
 
           {/* 5. CONNECTED DEVICE */}
           <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
-            {renderSectionHeader('devices', 'Connected Devices', Laptop, openSection === 'devices')}
+            {renderSectionHeader('devices', t('connected_devices', 'Connected Devices'), Laptop, openSection === 'devices')}
             {openSection === 'devices' && (
               <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '18px', border: '1px solid #E2E8F0', display: 'flex', gap: '14px', alignItems: 'center' }}>
@@ -645,20 +1015,97 @@ const Settings = () => {
                     <Smartphone size={24} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#0B1F4D' }}>{getDeviceInfo()}</h4>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#0B1F4D' }}>{deviceInfo}</h4>
                     <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#475569', fontWeight: '700' }}>📍 {loginSession.location}</p>
                     <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>🕒 Login: {loginSession.date} • {loginSession.time}</p>
                   </div>
-                  <span style={{ fontSize: '10px', background: '#D1FAE5', color: '#065F46', padding: '4px 10px', borderRadius: '100px', fontWeight: '800' }}>ACTIVE</span>
+                  <span style={{ fontSize: '10px', background: '#D1FAE5', color: '#065F46', padding: '4px 10px', borderRadius: '100px', fontWeight: '800' }}>{t('active', 'ACTIVE')}</span>
                 </div>
                 <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '18px', border: '1px solid #E2E8F0', display: 'flex', gap: '14px', alignItems: 'center', opacity: 0.7 }}>
                   <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Laptop size={24} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#475569' }}>Windows Web Console</h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '600' }}>📍 Mumbai, Maharashtra, India</p>
-                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>🕒 Last Active: 2 hours ago from Chrome</p>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#475569' }}>{t('windows_web_console', 'Windows Web Console')}</h4>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '600' }}>📍 {t('default_mumbai_location', 'Mumbai, Maharashtra, India')}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>🕒 {t('last_active_chrome', 'Last Active: 2 hours ago from Chrome')}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 5b. NOTIFICATION PREFERENCES */}
+          <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
+            {renderSectionHeader('notifications', t('notifications_settings', 'Notification Settings'), Bell, openSection === 'notifications')}
+            {openSection === 'notifications' && (
+              <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Permission Status */}
+                <div style={{
+                  background: permissionStatus === 'granted' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                  color: permissionStatus === 'granted' ? '#059669' : '#D97706',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {permissionStatus === 'granted' ? <ShieldCheck size={20} /> : <AlertCircle size={20} />}
+                    <span style={{ fontSize: '13px', fontWeight: '800' }}>
+                      {permissionStatus === 'granted' ? 'Notifications: Active' : 'Notifications: Disabled'}
+                    </span>
+                  </div>
+                  {permissionStatus !== 'granted' && (
+                    <button 
+                      onClick={requestPermission}
+                      style={{
+                        background: '#D97706',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontWeight: '800',
+                        fontSize: '11px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Enable
+                    </button>
+                  )}
+                </div>
+
+                {/* Toggles */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#334155' }}>Morning Milk Reminder</span>
+                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>Remind daily at 8:30 AM</p>
+                    </div>
+                    <div onClick={() => togglePref('morningMilk')} style={{ cursor: 'pointer', color: prefs.morningMilk ? '#0B1F4D' : '#CBD5E1' }}>
+                      {prefs.morningMilk ? <ToggleRight size={40} /> : <ToggleLeft size={40} />}
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
+                    <div>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#334155' }}>Evening Milk Reminder</span>
+                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>Remind daily at 6:30 PM</p>
+                    </div>
+                    <div onClick={() => togglePref('eveningMilk')} style={{ cursor: 'pointer', color: prefs.eveningMilk ? '#0B1F4D' : '#CBD5E1' }}>
+                      {prefs.eveningMilk ? <ToggleRight size={40} /> : <ToggleLeft size={40} />}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
+                    <div>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#334155' }}>Breeding & Calving Alerts</span>
+                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>Due tests & calving notification</p>
+                    </div>
+                    <div onClick={() => togglePref('breedingAlerts')} style={{ cursor: 'pointer', color: prefs.breedingAlerts ? '#0B1F4D' : '#CBD5E1' }}>
+                      {prefs.breedingAlerts ? <ToggleRight size={40} /> : <ToggleLeft size={40} />}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -667,7 +1114,7 @@ const Settings = () => {
 
           {/* 6. DATA BACKUP & RESTORE */}
           <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
-            {renderSectionHeader('backup', 'Data Backup & Restore', Database, openSection === 'backup')}
+            {renderSectionHeader('backup', t('data_management', 'Data Backup & Restore'), Database, openSection === 'backup')}
             {openSection === 'backup' && (
               <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -677,7 +1124,7 @@ const Settings = () => {
                     style={{ padding: '18px 12px', background: '#EFF6FF', color: '#2563EB', border: '1.5px solid #BFDBFE', borderRadius: '18px', fontWeight: '800', fontSize: '13px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s' }}
                   >
                     {backupLoading ? <Loader2 className="animate-spin" size={24} /> : <Database size={24} />}
-                    {backupLoading ? 'Backing up...' : 'Backup Database'}
+                    {backupLoading ? t('backing_up', 'Backing up...') : t('backup_db', 'Backup Database')}
                   </button>
                   <button 
                     onClick={runRestore}
@@ -685,26 +1132,26 @@ const Settings = () => {
                     style={{ padding: '18px 12px', background: '#ECFDF5', color: '#059669', border: '1.5px solid #A7F3D0', borderRadius: '18px', fontWeight: '800', fontSize: '13px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s' }}
                   >
                     {restoreLoading ? <Loader2 className="animate-spin" size={24} /> : <RefreshCcwIcon size={24} />}
-                    {restoreLoading ? 'Restoring...' : 'Restore Backup'}
+                    {restoreLoading ? t('restoring', 'Restoring...') : t('restore_backup', 'Restore Backup')}
                   </button>
                 </div>
 
                 {backupSuccess && (
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '14px 16px', background: '#ECFDF5', borderRadius: '14px', border: '1px solid #A7F3D0' }}>
                     <CheckCircle2 size={18} color="#059669" />
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#047857' }}>Backup successful! Saved to Milvexa Cloud storage.</span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#047857' }}>{t('backup_success_msg', 'Backup successful! Saved to Milvexa Cloud storage.')}</span>
                   </div>
                 )}
 
                 {restoreSuccess && (
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '14px 16px', background: '#ECFDF5', borderRadius: '14px', border: '1px solid #A7F3D0' }}>
                     <CheckCircle2 size={18} color="#059669" />
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#047857' }}>All cattle and milk data successfully restored.</span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#047857' }}>{t('restore_success_msg', 'All cattle and milk data successfully restored.')}</span>
                   </div>
                 )}
 
                 <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cloud Integrations</label>
+                  <label style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('cloud_integrations', 'Cloud Integrations')}</label>
                   
                   <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '18px', border: '1px solid #E2E8F0', display: 'flex', gap: '14px', alignItems: 'center' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#FFFDF5', border: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -715,9 +1162,9 @@ const Settings = () => {
                       </svg>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#0B1F4D' }}>Google Drive Cloud Sync</h4>
+                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#0B1F4D' }}>{t('gdrive_cloud_sync', 'Google Drive Cloud Sync')}</h4>
                       <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '600' }}>
-                        {gdriveConnected ? 'Account connected: tausi@milvexa.com' : 'Auto backup and sync your farm records to Google Drive'}
+                        {gdriveConnected ? `Account connected: ${user?.email || 'N/A'}` : t('gdrive_sync_desc', 'Auto backup and sync your farm records to Google Drive')}
                       </p>
                     </div>
                     
@@ -739,7 +1186,7 @@ const Settings = () => {
                       }}
                     >
                       {gdriveLoading ? <Loader2 className="animate-spin" size={14} /> : null}
-                      {gdriveConnected ? 'Disconnect' : 'Connect'}
+                      {gdriveConnected ? t('disconnect', 'Disconnect') : t('connect', 'Connect')}
                     </button>
                   </div>
 
@@ -766,7 +1213,7 @@ const Settings = () => {
                       {gdriveBackupLoading ? (
                         <>
                           <Loader2 className="animate-spin" size={16} />
-                          Uploading farm backup to your Google Drive...
+                          {t('gdrive_uploading', 'Uploading farm backup to your Google Drive...')}
                         </>
                       ) : (
                         <>
@@ -775,7 +1222,7 @@ const Settings = () => {
                             <path d="M9.32959 6.53979L4.64959 14.6398L7.32959 19.2798L11.9996 11.1798L9.32959 6.53979Z" fill="#2196F3"/>
                             <path d="M7.32959 19.2798H17.9996L20.6796 14.6398H9.99959L7.32959 19.2798Z" fill="#4CAF50"/>
                           </svg>
-                          Sync Now with Google Drive
+                          {t('gdrive_sync_now', 'Sync Now with Google Drive')}
                         </>
                       )}
                     </button>
@@ -785,7 +1232,7 @@ const Settings = () => {
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '14px 16px', background: '#ECFDF5', borderRadius: '14px', border: '1px solid #A7F3D0' }}>
                       <CheckCircle2 size={18} color="#059669" />
                       <span style={{ fontSize: '13px', fontWeight: '700', color: '#047857' }}>
-                        Google Drive Sync Successful! File **milvexa_backup.json** saved in **My Drive**.
+                        {t('gdrive_sync_success', 'Google Drive Sync Successful! File milvexa_backup.json saved in My Drive.')}
                       </span>
                     </div>
                   )}
@@ -796,9 +1243,9 @@ const Settings = () => {
                       <Clock size={24} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#0B1F4D' }}>Daily Auto Cloud Backup</h4>
+                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#0B1F4D' }}>{t('daily_auto_cloud_backup', 'Daily Auto Cloud Backup')}</h4>
                       <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '600' }}>
-                        {autoBackup ? 'ON • Daily backup auto-generated at 02:00 AM' : 'OFF • Backup will not be generated automatically'}
+                        {autoBackup ? t('auto_backup_on', 'ON • Daily backup auto-generated at 02:00 AM') : t('auto_backup_off', 'OFF • Backup will not be generated automatically')}
                       </p>
                     </div>
                     
@@ -829,6 +1276,120 @@ const Settings = () => {
                       }} />
                     </div>
                   </div>
+
+                  {/* LocalStorage Offline Auto-Backup Panel */}
+                  <div style={{ marginTop: '20px', borderTop: '1px dashed #E2E8F0', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '18px' }}>💾</span>
+                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#0B1F4D' }}>
+                        Offline LocalStorage Auto-Backup
+                      </h4>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: '1.5', fontWeight: '600' }}>
+                      Automatically generate local offline backups of all app settings, chat history, khatabook balances, and notifications in your browser's LocalStorage snapshot.
+                    </p>
+
+                    {/* Toggle Switch */}
+                    <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '18px', border: '1px solid #E2E8F0', display: 'flex', gap: '14px', alignItems: 'center' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: localAutoBackup ? '#E0F2FE' : '#F1F5F9', color: localAutoBackup ? '#0284C7' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s' }}>
+                        <Database size={24} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <h5 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>Offline Auto-Backup Status</h5>
+                        <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>
+                          {localAutoBackup ? 'ON • Backups automatically generated on opening settings' : 'OFF • Offline auto-backups disabled'}
+                        </p>
+                      </div>
+                      
+                      {/* Toggle */}
+                      <div 
+                        onClick={handleToggleLocalAutoBackup}
+                        style={{
+                          width: '50px',
+                          height: '28px',
+                          borderRadius: '100px',
+                          background: localAutoBackup ? '#0284C7' : '#CBD5E1',
+                          padding: '3px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: localAutoBackup ? 'flex-end' : 'flex-start',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)'
+                        }}
+                      >
+                        <div style={{
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '100px',
+                          background: 'white',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }} />
+                      </div>
+                    </div>
+
+                    {/* Manual Trigger Button */}
+                    <button
+                      type="button"
+                      onClick={() => generateLocalBackup(false)}
+                      style={{
+                        padding: '12px',
+                        background: '#0F172A',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      📸 Generate Local Backup Snapshot Now
+                    </button>
+
+                    {/* Backups List */}
+                    {localBackup ? (
+                      <div style={{ marginTop: '10px' }}>
+                        <h5 style={{ margin: '0 0 10px 0', fontSize: '12px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>
+                          Current Local Snapshot Slot
+                        </h5>
+                        <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', display: 'flex', justifyItems: 'center', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '12px', fontWeight: '800', color: '#1E293B' }}>
+                              {localBackup.date} {localBackup.isAuto && <span style={{ fontSize: '9px', background: '#E0F2FE', color: '#0369A1', padding: '2px 6px', borderRadius: '100px', fontWeight: '800', marginLeft: '6px' }}>AUTO</span>}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '600', marginTop: '2px' }}>
+                              Size: {localBackup.size}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button 
+                              type="button" 
+                              onClick={restoreLocalBackup}
+                              style={{ padding: '6px 10px', background: '#10B981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                            >
+                              Restore
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={deleteLocalBackup}
+                              style={{ padding: '6px 8px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: '10px', padding: '12px 14px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', fontSize: '12px', fontWeight: '600', color: '#92400E' }}>
+                        No local backup slot exists. Generate a snapshot to create one!
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -836,7 +1397,7 @@ const Settings = () => {
 
           {/* 7. ACCOUNT CONTROL (DEACTIVATE / DELETE) */}
           <div style={{ background: 'white', overflow: 'hidden', borderBottom: '1px solid #F1F5F9' }}>
-            {renderSectionHeader('accountControl', 'Account Control', Trash2, openSection === 'accountControl')}
+            {renderSectionHeader('accountControl', t('account_control', 'Account Control'), Trash2, openSection === 'accountControl')}
             {openSection === 'accountControl' && (
               <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 
@@ -844,10 +1405,10 @@ const Settings = () => {
                 <div style={{ padding: '18px', background: '#FFFBEB', borderRadius: '20px', border: '1px solid #FDE68A', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '20px' }}>⚠️</span>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#B45309' }}>Deactivate Account</h4>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#B45309' }}>{t('deactivate_account', 'Deactivate Account')}</h4>
                   </div>
                   <p style={{ margin: 0, fontSize: '12px', color: '#92400E', lineHeight: '1.6', fontWeight: '600' }}>
-                    Your account will be temporarily deactivated. All cattle records and farm analytics data will remain safely stored in our secure cloud database, but you won't be able to access the application until you contact our support team to reactivate it.
+                    {t('deactivate_desc', "Your account will be temporarily deactivated. All cattle records and farm analytics data will remain safely stored in our secure cloud database, but you won't be able to access the application until you contact our support team to reactivate it.")}
                   </p>
                   <button 
                     onClick={handleDeactivate}
@@ -870,7 +1431,7 @@ const Settings = () => {
                     }}
                   >
                     {deactivateLoading ? <Loader2 className="animate-spin" size={16} /> : null}
-                    Deactivate Account Temporarily
+                    {t('deactivate_button', 'Deactivate Account Temporarily')}
                   </button>
                 </div>
 
@@ -878,20 +1439,20 @@ const Settings = () => {
                 <div style={{ padding: '18px', background: '#FEF2F2', borderRadius: '20px', border: '1px solid #FEE2E2', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '20px' }}>🛑</span>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#DC2626' }}>Delete Account Permanently</h4>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#DC2626' }}>{t('delete_account_permanently', 'Delete Account Permanently')}</h4>
                   </div>
                   <p style={{ margin: 0, fontSize: '12px', color: '#991B1B', lineHeight: '1.6', fontWeight: '600' }}>
-                    Your account will be permanently deleted. This action will permanently erase your farm name, cattle logs, fat/SNF milk records, and payouts sheets. This action is final and cannot be reversed!
+                    {t('delete_desc', "Your account will be permanently deleted. This action will permanently erase your farm name, cattle logs, fat/SNF milk records, and payouts sheets. This action is final and cannot be reversed!")}
                   </p>
                   
                   {confirmDeleteInput && (
                     <div style={{ marginTop: '4px', animation: 'slideDown 0.2s ease-out' }}>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#991B1B', marginBottom: '8px', textTransform: 'uppercase' }}>Confirm permanent deletion by typing **"DELETE"**:</label>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#991B1B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('confirm_delete_prompt', 'Confirm permanent deletion by typing "DELETE":')}</label>
                       <input 
                         type="text" 
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.target.value)}
-                        placeholder="Type DELETE"
+                        placeholder={t('placeholder_type_delete', 'Type DELETE')}
                         style={{ width: '100%', padding: '12px 16px', background: 'white', border: '1.5px solid #FCA5A5', borderRadius: '12px', fontSize: '14px', fontWeight: '700', color: '#DC2626', outline: 'none' }}
                       />
                     </div>
@@ -919,7 +1480,7 @@ const Settings = () => {
                     }}
                   >
                     {deleteLoading ? <Loader2 className="animate-spin" size={16} /> : null}
-                    {confirmDeleteInput ? 'Yes, Delete My Account Now' : 'Delete Account Permanently'}
+                    {confirmDeleteInput ? t('confirm_delete_button', 'Yes, Delete My Account Now') : t('delete_account_permanently', 'Delete Account Permanently')}
                   </button>
                 </div>
 
@@ -929,18 +1490,89 @@ const Settings = () => {
 
           {/* 7. APP VERSION (ABOUT US) */}
           <div style={{ background: 'white', overflow: 'hidden' }}>
-            {renderSectionHeader('about', 'App Version (About Us)', Info, openSection === 'about')}
+            {renderSectionHeader('about', t('app_version_about', 'App Version (About Us)'), Info, openSection === 'about')}
             {openSection === 'about' && (
-              <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
+              <div className="animate-slide-down" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center' }}>
                 <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'linear-gradient(135deg, #05163D 0%, #0B1F4D 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', boxShadow: '0 10px 20px rgba(11, 31, 77, 0.15)' }}>
                   <span style={{ color: 'white', fontSize: '28px', fontWeight: '900' }}>M</span>
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#0B1F4D' }}>Milvexa Cattle Farm Management</h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748B', fontWeight: '800' }}>App Version v1.0.0 (Release build)</p>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#0B1F4D' }}>{t('app_about_title', 'Milvexa Cattle Farm Management')}</h3>
+                  <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748B', fontWeight: '800' }}>{t('app_version_string', 'App Version v1.0.0 (Release build)')}</p>
                 </div>
+                
+                {/* Premium Update Checker Actions */}
+                <div style={{ 
+                  padding: '16px', 
+                  background: '#F8FAFC', 
+                  borderRadius: '20px', 
+                  border: '1.5px dashed #E2E8F0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <button
+                    onClick={handleCheckForUpdatesManual}
+                    disabled={updateCheckState === 'checking'}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      background: updateCheckState === 'up-to-date' ? '#ECFDF5' : 'linear-gradient(135deg, #0b1f4d 0%, #020617 100%)',
+                      color: updateCheckState === 'up-to-date' ? '#047857' : 'white',
+                      border: updateCheckState === 'up-to-date' ? '1px solid #A7F3D0' : 'none',
+                      borderRadius: '14px',
+                      fontSize: '13px',
+                      fontWeight: '900',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: updateCheckState === 'checking' ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 8px 16px rgba(0,0,0,0.04)',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    {updateCheckState === 'checking' && (
+                      <>
+                        <span className="animate-spin" style={{ display: 'inline-block' }}>🔄</span>
+                        Checking for latest release...
+                      </>
+                    )}
+                    {updateCheckState === 'up-to-date' && (
+                      <>
+                        <span>✨</span>
+                        You are up to date!
+                      </>
+                    )}
+                    {updateCheckState === 'error' && (
+                      <>
+                        <span>⚠️</span>
+                        Retry Update Check
+                      </>
+                    )}
+                    {updateCheckState === 'idle' && (
+                      <>
+                        <span>🚀</span>
+                        Check for Updates
+                      </>
+                    )}
+                  </button>
+
+                  {updateCheckState === 'up-to-date' && (
+                    <p style={{ margin: 0, fontSize: '11px', color: '#059669', fontWeight: '800', lineHeight: '1.4' }}>
+                      🎉 Awesome! You are using the latest stable release of Milvexa.
+                    </p>
+                  )}
+
+                  {updateCheckState === 'error' && (
+                    <p style={{ margin: 0, fontSize: '11px', color: '#DC2626', fontWeight: '700', lineHeight: '1.4' }}>
+                      Check failed: {updateErrorMsg || 'Server is not reachable.'}
+                    </p>
+                  )}
+                </div>
+
                 <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#475569', lineHeight: '1.6', fontWeight: '600' }}>
-                  Developed by <strong>MILVEXA SOLUTIONS PVT. LTD.</strong> All rights reserved copyright © 2026. A fully integrated cattle farm and daily milk yield tracking solution.
+                  {t('app_copyright_text', 'Developed by MILVEXA SOLUTIONS PVT. LTD. All rights reserved copyright © 2026. A fully integrated cattle farm and daily milk yield tracking solution.')}
                 </div>
               </div>
             )}
@@ -970,7 +1602,7 @@ const Settings = () => {
           }}
         >
           <LogOut size={20} />
-          Log Out Account
+          {t('logout', 'Log Out Account')}
         </button>
       </div>
     </div>

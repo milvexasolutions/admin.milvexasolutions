@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { useHeader } from '../context/HeaderContext';
+import { useAuth } from '../context/AuthContext';
 
 const PullToRefresh = ({ onRefresh, children }) => {
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const startY = useRef(0);
   const threshold = 70;
+
+  const { headerConfig } = useHeader();
+  const { user } = useAuth();
+  const hasHeader = !!(user && headerConfig);
 
   const handleTouchStart = (e) => {
     if (window.scrollY <= 0) {
@@ -48,6 +54,17 @@ const PullToRefresh = ({ onRefresh, children }) => {
     startY.current = null;
   };
 
+  // If there is a header, start 50px behind the header bottom (header bottom is var(--safe-top) + 68px).
+  // Slide down smoothly when pullDistance increases.
+  const getSpinnerTop = () => {
+    if (hasHeader) {
+      const offset = isRefreshing ? 20 : pullDistance;
+      return `calc(var(--safe-top) + 18px + ${offset}px)`;
+    } else {
+      return -50 + (isRefreshing ? 70 : pullDistance);
+    }
+  };
+
   return (
     <div 
       onTouchStart={handleTouchStart}
@@ -57,7 +74,7 @@ const PullToRefresh = ({ onRefresh, children }) => {
     >
       <div style={{
           position: 'fixed',
-          top: -50 + (isRefreshing ? 70 : pullDistance),
+          top: getSpinnerTop(),
           left: 0,
           right: 0,
           height: '50px',

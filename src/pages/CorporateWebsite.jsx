@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { 
   Smartphone, 
   Globe, 
@@ -253,16 +254,6 @@ export default function CorporateWebsite() {
         .glow-circle {
           animation: pulse-glow 8s ease-in-out infinite;
         }
-        .nav-item-active::after {
-          content: "";
-          position: absolute;
-          bottom: -8px;
-          left: 0;
-          width: 100%;
-          height: 3px;
-          background: #3B82F6;
-          border-radius: 10px;
-        }
       `}} />
 
       {/* 1. Header/Navbar */}
@@ -304,7 +295,7 @@ export default function CorporateWebsite() {
         </div>
 
         {/* Desktop Nav Links */}
-        <nav style={{ display: 'none', alignItems: 'center', gap: '32px' }} className="desktop-nav-links">
+        <nav style={{ display: 'none', alignItems: 'center', gap: '32px', position: 'relative' }} className="desktop-nav-links">
           {['home', 'services', 'projects', 'downloads', 'guides', 'about', 'contact'].map((item) => (
             <button
               key={item}
@@ -318,11 +309,26 @@ export default function CorporateWebsite() {
                 textTransform: 'capitalize',
                 position: 'relative',
                 padding: '4px 0',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                transition: 'color 0.2s ease'
               }}
-              className={activeSection === item ? 'nav-item-active' : ''}
             >
               {item}
+              {activeSection === item && (
+                <motion.div
+                  layoutId="activeUnderline"
+                  style={{
+                    position: 'absolute',
+                    bottom: '-8px',
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: '#3B82F6',
+                    borderRadius: '10px'
+                  }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
             </button>
           ))}
         </nav>
@@ -346,27 +352,6 @@ export default function CorporateWebsite() {
             }}
           >
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-
-          {/* Contact Button */}
-          <button
-            onClick={() => scrollToSection('contact')}
-            style={{
-              display: 'none',
-              padding: '12px 24px',
-              background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-              color: 'white',
-              borderRadius: '14px',
-              fontWeight: '800',
-              fontSize: '14px',
-              boxShadow: '0 8px 20px rgba(59, 130, 246, 0.2)',
-              cursor: 'pointer',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-            className="desktop-contact-btn"
-          >
-            Get in Touch <ArrowRight size={15} />
           </button>
 
           {/* Mobile Menu Icon */}
@@ -395,7 +380,6 @@ export default function CorporateWebsite() {
       <style dangerouslySetInnerHTML={{__html: `
         @media (min-width: 992px) {
           .desktop-nav-links { display: flex !important; }
-          .desktop-contact-btn { display: flex !important; }
           .mobile-menu-btn { display: none !important; }
           .hero-grid { grid-template-columns: 1.1fr 0.9fr !important; gap: 40px !important; text-align: left !important; }
           .hero-info-panel { align-items: flex-start !important; }
@@ -440,25 +424,6 @@ export default function CorporateWebsite() {
               {item.charAt(0).toUpperCase() + item.slice(1)}
             </button>
           ))}
-          <button
-            onClick={() => scrollToSection('contact')}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-              color: 'white',
-              borderRadius: '14px',
-              fontWeight: '800',
-              fontSize: '16px',
-              marginTop: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            Get in Touch <ArrowRight size={18} />
-          </button>
         </div>
       )}
 

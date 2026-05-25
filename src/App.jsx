@@ -1794,7 +1794,7 @@ const AppContent = () => {
   }, [location.pathname, navigate]);
 
   // Simple Loading State for Auth
-  if (authLoading) {
+  if (authLoading && (isAppDomain || isAdminDomain)) {
     return (
       <div style={{
         position: 'fixed',

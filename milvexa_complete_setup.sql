@@ -1,12 +1,13 @@
 -- ====================================================================
---  🐄 MILVEXA FARM MANAGEMENT - COMPLETE DATABASE SETUP SQL 🐄
+--  🐄 MILVEXA FARM MANAGEMENT & WEBSITE - COMPLETE UNIFIED DATABASE SETUP SQL 🐄
 -- ====================================================================
 --  ✅ Clear & Comprehensive SQL script to set up all tables, indexes,
 --     RLS (Row Level Security) policies, triggers, views, and storage.
+--  ✅ Safely combines both App Farm Management & Corporate Website schemas.
 --  ✅ Safe to run multiple times (uses IF NOT EXISTS / DROP IF EXISTS).
 -- ====================================================================
 -- How to run in Supabase:
---   1. Open Supabase Dashboard.
+--   1. Open Supabase Dashboard (https://supabase.com).
 --   2. Go to SQL Editor (Left sidebar).
 --   3. Create a "New Query".
 --   4. Paste this entire script and click "Run".
@@ -18,8 +19,76 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================
--- 2. PROFILES TABLE (Syncs with auth.users)
+-- 2. CORPORATE WEBSITE TABLES
 -- ============================================================
+
+-- A. COMPANY PROFILE TABLE
+CREATE TABLE IF NOT EXISTS public.company_profile (
+    id UUID PRIMARY KEY DEFAULT 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22'::uuid, -- Static ID for unified profile row
+    company_name TEXT NOT NULL DEFAULT 'Milvexa Solutions Pvt. Ltd.',
+    tagline TEXT NOT NULL DEFAULT 'Innovative Software & Mobile App Solutions',
+    description TEXT NOT NULL DEFAULT 'We build powerful Android apps, web applications, admin panels, and business solutions that help enterprises grow and automate their business efficiently.',
+    years_experience INT NOT NULL DEFAULT 5,
+    projects_completed INT NOT NULL DEFAULT 50,
+    client_satisfaction TEXT NOT NULL DEFAULT '100%',
+    support_hours TEXT NOT NULL DEFAULT '24/7',
+    contact_email TEXT NOT NULL DEFAULT 'support@milvexasolutions.in',
+    contact_phone TEXT NOT NULL DEFAULT '+91 96247 45944',
+    address TEXT NOT NULL DEFAULT 'Anand, Gujarat, India',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- B. CORPORATE SERVICES TABLE
+CREATE TABLE IF NOT EXISTS public.corporate_services (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    icon_name TEXT NOT NULL DEFAULT 'Smartphone',
+    description TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- C. CORPORATE PROJECTS SHOWCASE TABLE
+CREATE TABLE IF NOT EXISTS public.corporate_projects (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'Web Application',
+    technologies TEXT[] NOT NULL DEFAULT '{}',
+    short_description TEXT NOT NULL,
+    long_description TEXT,
+    image_url TEXT,
+    live_url TEXT DEFAULT '#',
+    github_url TEXT DEFAULT '#',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- D. CORPORATE APK DOWNLOADS TABLE
+CREATE TABLE IF NOT EXISTS public.corporate_apks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    app_name TEXT NOT NULL,
+    version TEXT NOT NULL,
+    file_size TEXT NOT NULL,
+    download_url TEXT NOT NULL,
+    icon_type TEXT NOT NULL DEFAULT 'smartphone',
+    release_date TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- E. CONTACT QUERY LEADS TABLE
+CREATE TABLE IF NOT EXISTS public.contact_queries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    message TEXT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================
+-- 3. APP FARM MANAGEMENT TABLES
+-- ============================================================
+
+-- A. PROFILES TABLE (Syncs with auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name    TEXT,
@@ -35,63 +104,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable RLS
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
--- Policies
-DROP POLICY IF EXISTS "Users can read own profile"   ON public.profiles;
-DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-DROP POLICY IF EXISTS "Admin can read all profiles"  ON public.profiles;
-
-CREATE POLICY "Users can read own profile"
-  ON public.profiles FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own profile"
-  ON public.profiles FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Admin can read all profiles"
-  ON public.profiles FOR SELECT USING (true);
-
--- Trigger: Automatically create profile on signup
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, full_name, email)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    NEW.email
-  )
-  ON CONFLICT (id) DO NOTHING;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Trigger: Automatically update profile email when user changes auth email
-CREATE OR REPLACE FUNCTION public.handle_user_update()
-RETURNS TRIGGER AS $$
-BEGIN
-  UPDATE public.profiles
-  SET email = NEW.email
-  WHERE id = NEW.id;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_updated ON auth.users;
-CREATE TRIGGER on_auth_user_updated
-  AFTER UPDATE OF email ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_user_update();
-
-
--- ============================================================
--- 3. ANIMALS TABLE (Cattle Records)
--- ============================================================
+-- B. ANIMALS TABLE (Cattle Records)
 CREATE TABLE IF NOT EXISTS public.animals (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -118,24 +131,7 @@ CREATE TABLE IF NOT EXISTS public.animals (
   created_at       TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_animals_owner  ON public.animals(owner_id);
-CREATE INDEX IF NOT EXISTS idx_animals_status ON public.animals(status);
-CREATE INDEX IF NOT EXISTS idx_animals_type   ON public.animals(type);
-
-ALTER TABLE public.animals ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public.animals ADD COLUMN IF NOT EXISTS calf_mother_type TEXT CHECK (calf_mother_type IN ('Cow', 'Buffalo'));
-
-DROP POLICY IF EXISTS "Owner full access on animals" ON public.animals;
-CREATE POLICY "Owner full access on animals"
-  ON public.animals FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 4. MILK PRODUCTION TABLE (Daily yields & direct dairy pours)
--- ============================================================
+-- C. MILK PRODUCTION TABLE (Daily yields & direct dairy pours)
 CREATE TABLE IF NOT EXISTS public.milk_production (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -152,22 +148,7 @@ CREATE TABLE IF NOT EXISTS public.milk_production (
   created_at       TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_milk_owner ON public.milk_production(owner_id);
-CREATE INDEX IF NOT EXISTS idx_milk_date  ON public.milk_production(production_date);
-CREATE INDEX IF NOT EXISTS idx_milk_animal ON public.milk_production(animal_id);
-
-ALTER TABLE public.milk_production ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on milk" ON public.milk_production;
-CREATE POLICY "Owner full access on milk"
-  ON public.milk_production FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 5. BREEDING RECORDS TABLE
--- ============================================================
+-- D. BREEDING RECORDS TABLE
 CREATE TABLE IF NOT EXISTS public.breeding_records (
   id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -182,21 +163,7 @@ CREATE TABLE IF NOT EXISTS public.breeding_records (
   created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_breeding_owner ON public.breeding_records(owner_id);
-CREATE INDEX IF NOT EXISTS idx_breeding_animal ON public.breeding_records(animal_id);
-
-ALTER TABLE public.breeding_records ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on breeding" ON public.breeding_records;
-CREATE POLICY "Owner full access on breeding"
-  ON public.breeding_records FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 6. VET DOCTORS TABLE
--- ============================================================
+-- E. VET DOCTORS TABLE
 CREATE TABLE IF NOT EXISTS public.doctors (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -207,20 +174,7 @@ CREATE TABLE IF NOT EXISTS public.doctors (
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_doctors_owner ON public.doctors(owner_id);
-
-ALTER TABLE public.doctors ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on doctors" ON public.doctors;
-CREATE POLICY "Owner full access on doctors"
-  ON public.doctors FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 7. DOCTOR LEDGER TABLE (Vet transactions)
--- ============================================================
+-- F. DOCTOR LEDGER TABLE (Vet transactions)
 CREATE TABLE IF NOT EXISTS public.doctor_ledger (
   id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -233,21 +187,7 @@ CREATE TABLE IF NOT EXISTS public.doctor_ledger (
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_doctor_ledger_owner     ON public.doctor_ledger(owner_id);
-CREATE INDEX IF NOT EXISTS idx_doctor_ledger_doctor_id ON public.doctor_ledger(doctor_id);
-
-ALTER TABLE public.doctor_ledger ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on doctor_ledger" ON public.doctor_ledger;
-CREATE POLICY "Owner full access on doctor_ledger"
-  ON public.doctor_ledger FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 8. STAFF TABLE (Farm workers)
--- ============================================================
+-- G. STAFF TABLE (Farm workers)
 CREATE TABLE IF NOT EXISTS public.staff (
   id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -260,20 +200,7 @@ CREATE TABLE IF NOT EXISTS public.staff (
   created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_staff_owner ON public.staff(owner_id);
-
-ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on staff" ON public.staff;
-CREATE POLICY "Owner full access on staff"
-  ON public.staff FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 9. STAFF TRANSACTIONS TABLE (Advance & Salary payments)
--- ============================================================
+-- H. STAFF TRANSACTIONS TABLE (Advance & Salary payments)
 CREATE TABLE IF NOT EXISTS public.staff_transactions (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -286,21 +213,7 @@ CREATE TABLE IF NOT EXISTS public.staff_transactions (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_staff_tx_owner    ON public.staff_transactions(owner_id);
-CREATE INDEX IF NOT EXISTS idx_staff_tx_staff_id ON public.staff_transactions(staff_id);
-
-ALTER TABLE public.staff_transactions ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on staff_transactions" ON public.staff_transactions;
-CREATE POLICY "Owner full access on staff_transactions"
-  ON public.staff_transactions FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 10. SOCIETIES TABLE (Dairy Cooperative Centers)
--- ============================================================
+-- I. SOCIETIES TABLE (Dairy Cooperative Centers)
 CREATE TABLE IF NOT EXISTS public.societies (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id        UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -311,20 +224,7 @@ CREATE TABLE IF NOT EXISTS public.societies (
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_societies_owner ON public.societies(owner_id);
-
-ALTER TABLE public.societies ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on societies" ON public.societies;
-CREATE POLICY "Owner full access on societies"
-  ON public.societies FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 11. FEED PURCHASES TABLE (Purchased via Cooperative Societies)
--- ============================================================
+-- J. FEED PURCHASES TABLE (Purchased via Cooperative Societies)
 CREATE TABLE IF NOT EXISTS public.feed_purchases (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id      UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -337,21 +237,7 @@ CREATE TABLE IF NOT EXISTS public.feed_purchases (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_feed_purchases_owner ON public.feed_purchases(owner_id);
-CREATE INDEX IF NOT EXISTS idx_feed_purchases_date  ON public.feed_purchases(date);
-
-ALTER TABLE public.feed_purchases ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on feed_purchases" ON public.feed_purchases;
-CREATE POLICY "Owner full access on feed_purchases"
-  ON public.feed_purchases FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 12. SUPPLIERS TABLE
--- ============================================================
+-- K. SUPPLIERS TABLE
 CREATE TABLE IF NOT EXISTS public.suppliers (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -361,20 +247,7 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_suppliers_owner ON public.suppliers(owner_id);
-
-ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on suppliers" ON public.suppliers;
-CREATE POLICY "Owner full access on suppliers"
-  ON public.suppliers FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 13. SUPPLIER PURCHASES TABLE (Direct Stock Purchases)
--- ============================================================
+-- L. SUPPLIER PURCHASES TABLE (Direct Stock Purchases)
 CREATE TABLE IF NOT EXISTS public.supplier_purchases (
   id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -387,20 +260,7 @@ CREATE TABLE IF NOT EXISTS public.supplier_purchases (
   created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_supplier_purchases_owner ON public.supplier_purchases(owner_id);
-
-ALTER TABLE public.supplier_purchases ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on supplier_purchases" ON public.supplier_purchases;
-CREATE POLICY "Owner full access on supplier_purchases"
-  ON public.supplier_purchases FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 14. PAYMENTS TABLE (Financial Transactions & Balance Sheet)
--- ============================================================
+-- M. PAYMENTS TABLE (Financial Transactions & Balance Sheet)
 CREATE TABLE IF NOT EXISTS public.payments (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -412,27 +272,12 @@ CREATE TABLE IF NOT EXISTS public.payments (
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_payments_owner ON public.payments(owner_id);
-CREATE INDEX IF NOT EXISTS idx_payments_type  ON public.payments(type);
-CREATE INDEX IF NOT EXISTS idx_payments_date  ON public.payments(date);
-
-ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on payments" ON public.payments;
-CREATE POLICY "Owner full access on payments"
-  ON public.payments FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 14b. BORROW & LEND TABLE (Credit & Debit Tracking)
--- ============================================================
+-- N. BORROW & LEND TABLE (Credit & Debit Tracking)
 CREATE TABLE IF NOT EXISTS public.borrow_lend (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   person_name TEXT NOT NULL,
-  type        TEXT NOT NULL CHECK (type IN ('Credit', 'Debit')), -- Credit = borrowed (money taken), Debit = lent (money given)
+  type        TEXT NOT NULL CHECK (type IN ('Credit', 'Debit')), -- Credit = borrowed, Debit = lent
   amount      NUMERIC(12, 2) NOT NULL,
   status      TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Settled')),
   date        DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -440,22 +285,7 @@ CREATE TABLE IF NOT EXISTS public.borrow_lend (
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_borrow_lend_owner ON public.borrow_lend(owner_id);
-CREATE INDEX IF NOT EXISTS idx_borrow_lend_type  ON public.borrow_lend(type);
-CREATE INDEX IF NOT EXISTS idx_borrow_lend_status ON public.borrow_lend(status);
-
-ALTER TABLE public.borrow_lend ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on borrow_lend" ON public.borrow_lend;
-CREATE POLICY "Owner full access on borrow_lend"
-  ON public.borrow_lend FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 15. INVENTORY TABLE (Feed & Medicine Stock management)
--- ============================================================
+-- O. INVENTORY TABLE (Feed & Medicine Stock management)
 CREATE TABLE IF NOT EXISTS public.inventory (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -469,21 +299,7 @@ CREATE TABLE IF NOT EXISTS public.inventory (
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_inventory_owner    ON public.inventory(owner_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_category ON public.inventory(category);
-
-ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on inventory" ON public.inventory;
-CREATE POLICY "Owner full access on inventory"
-  ON public.inventory FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 16. DAIRY LEDGER TABLE (Dairy milk payouts tracking)
--- ============================================================
+-- P. DAIRY LEDGER TABLE (Dairy milk payouts tracking)
 CREATE TABLE IF NOT EXISTS public.dairy_ledger (
   id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id           UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -497,21 +313,7 @@ CREATE TABLE IF NOT EXISTS public.dairy_ledger (
   created_at         TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_dairy_ledger_owner ON public.dairy_ledger(owner_id);
-CREATE INDEX IF NOT EXISTS idx_dairy_ledger_dates ON public.dairy_ledger(period_start, period_end);
-
-ALTER TABLE public.dairy_ledger ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Owner full access on dairy_ledger" ON public.dairy_ledger;
-CREATE POLICY "Owner full access on dairy_ledger"
-  ON public.dairy_ledger FOR ALL
-  USING (auth.uid() = owner_id)
-  WITH CHECK (auth.uid() = owner_id);
-
-
--- ============================================================
--- 17. ADMIN ROLES TABLE (Custom whitelists for Admin Portal)
--- ============================================================
+-- Q. ADMIN ROLES TABLE (Custom credentials whitelist for Admin Panel)
 CREATE TABLE IF NOT EXISTS public.admin_roles (
     id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email       TEXT UNIQUE NOT NULL,
@@ -523,24 +325,7 @@ CREATE TABLE IF NOT EXISTS public.admin_roles (
     updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Ensure username column exists if the table was already created
-ALTER TABLE public.admin_roles ADD COLUMN IF NOT EXISTS username TEXT UNIQUE;
-
-ALTER TABLE public.admin_roles ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Public Manage Admin Roles" ON public.admin_roles;
-CREATE POLICY "Public Manage Admin Roles" ON public.admin_roles FOR ALL USING (true);
-
--- Insert Default Super Admin
-INSERT INTO public.admin_roles (email, username, password, role, status)
-VALUES ('milvexasolutions@gmail.com', 'milvexa', 'admin@123', 'super_admin', 'active')
-ON CONFLICT (email) DO NOTHING;
-
-
-
--- ============================================================
--- 18. SYSTEM UPDATES TABLE (APK & Release notes manager)
--- ============================================================
+-- R. SYSTEM UPDATES TABLE (APK & Release notes manager)
 CREATE TABLE IF NOT EXISTS public.system_updates (
     id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     latest_version       TEXT NOT NULL,
@@ -552,25 +337,245 @@ CREATE TABLE IF NOT EXISTS public.system_updates (
     updated_at           TIMESTAMPTZ DEFAULT NOW()
 );
 
+
+-- ============================================================
+-- 4. TRIGGERS & FUNCTIONS (Profiles <> auth.users sync)
+-- ============================================================
+
+-- Function: Automatically create profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, email)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    NEW.email
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Function: Automatically update profile email when user changes auth email
+CREATE OR REPLACE FUNCTION public.handle_user_update()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE public.profiles
+  SET email = NEW.email
+  WHERE id = NEW.id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_updated ON auth.users;
+CREATE TRIGGER on_auth_user_updated
+  AFTER UPDATE OF email ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_user_update();
+
+
+-- ============================================================
+-- 5. ROW LEVEL SECURITY (RLS) ENABLEMENT & POLICIES
+-- ============================================================
+
+-- A. Enable RLS on all tables
+ALTER TABLE public.company_profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.corporate_services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.corporate_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.corporate_apks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contact_queries ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.animals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.milk_production ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.breeding_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.doctors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.doctor_ledger ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.societies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feed_purchases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.supplier_purchases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.borrow_lend ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.dairy_ledger ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_updates ENABLE ROW LEVEL SECURITY;
+
+-- B. Policies for Corporate Website Tables (Universal access checks)
+DROP POLICY IF EXISTS "Public Read company_profile" ON public.company_profile;
+CREATE POLICY "Public Read company_profile" ON public.company_profile FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage company_profile" ON public.company_profile;
+CREATE POLICY "Public Manage company_profile" ON public.company_profile FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public Read corporate_services" ON public.corporate_services;
+CREATE POLICY "Public Read corporate_services" ON public.corporate_services FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage corporate_services" ON public.corporate_services;
+CREATE POLICY "Public Manage corporate_services" ON public.corporate_services FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public Read corporate_projects" ON public.corporate_projects;
+CREATE POLICY "Public Read corporate_projects" ON public.corporate_projects FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage corporate_projects" ON public.corporate_projects;
+CREATE POLICY "Public Manage corporate_projects" ON public.corporate_projects FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public Read corporate_apks" ON public.corporate_apks;
+CREATE POLICY "Public Read corporate_apks" ON public.corporate_apks FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage corporate_apks" ON public.corporate_apks;
+CREATE POLICY "Public Manage corporate_apks" ON public.corporate_apks FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public Read contact_queries" ON public.contact_queries;
+CREATE POLICY "Public Read contact_queries" ON public.contact_queries FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage contact_queries" ON public.contact_queries;
+CREATE POLICY "Public Manage contact_queries" ON public.contact_queries FOR ALL USING (true) WITH CHECK (true);
+
+-- C. Policies for App Farm Management Tables (Owner-isolated access checks)
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
+CREATE POLICY "Users can read own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Admin can read all profiles" ON public.profiles;
+CREATE POLICY "Admin can read all profiles" ON public.profiles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Owner full access on animals" ON public.animals;
+CREATE POLICY "Owner full access on animals" ON public.animals FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on milk" ON public.milk_production;
+CREATE POLICY "Owner full access on milk" ON public.milk_production FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on breeding" ON public.breeding_records;
+CREATE POLICY "Owner full access on breeding" ON public.breeding_records FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on doctors" ON public.doctors;
+CREATE POLICY "Owner full access on doctors" ON public.doctors FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on doctor_ledger" ON public.doctor_ledger;
+CREATE POLICY "Owner full access on doctor_ledger" ON public.doctor_ledger FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on staff" ON public.staff;
+CREATE POLICY "Owner full access on staff" ON public.staff FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on staff_transactions" ON public.staff_transactions;
+CREATE POLICY "Owner full access on staff_transactions" ON public.staff_transactions FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on societies" ON public.societies;
+CREATE POLICY "Owner full access on societies" ON public.societies FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on feed_purchases" ON public.feed_purchases;
+CREATE POLICY "Owner full access on feed_purchases" ON public.feed_purchases FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on suppliers" ON public.suppliers;
+CREATE POLICY "Owner full access on suppliers" ON public.suppliers FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on supplier_purchases" ON public.supplier_purchases;
+CREATE POLICY "Owner full access on supplier_purchases" ON public.supplier_purchases FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on payments" ON public.payments;
+CREATE POLICY "Owner full access on payments" ON public.payments FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on borrow_lend" ON public.borrow_lend;
+CREATE POLICY "Owner full access on borrow_lend" ON public.borrow_lend FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on inventory" ON public.inventory;
+CREATE POLICY "Owner full access on inventory" ON public.inventory FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Owner full access on dairy_ledger" ON public.dairy_ledger;
+CREATE POLICY "Owner full access on dairy_ledger" ON public.dairy_ledger FOR ALL USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
+
+-- D. Policies for System Admin Tables
+DROP POLICY IF EXISTS "Public Manage Admin Roles" ON public.admin_roles;
+CREATE POLICY "Public Manage Admin Roles" ON public.admin_roles FOR ALL USING (true);
 
 DROP POLICY IF EXISTS "Public Read Updates" ON public.system_updates;
 CREATE POLICY "Public Read Updates" ON public.system_updates FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Manage Updates" ON public.system_updates;
 CREATE POLICY "Manage Updates" ON public.system_updates FOR ALL USING (auth.uid() IS NOT NULL);
 
--- Insert Initial Updates Config Row
+
+-- ============================================================
+-- 6. INITIAL SEED DATA
+-- ============================================================
+
+-- A. Seed Corporate Website Info
+INSERT INTO public.company_profile (id, company_name, tagline, description, years_experience, projects_completed, client_satisfaction, support_hours, contact_email, contact_phone, address)
+VALUES (
+    'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22'::uuid,
+    'Milvexa Solutions Pvt. Ltd.',
+    'Innovative Software & Mobile App Solutions',
+    'We build powerful Android apps, web applications, admin panels, and business solutions that help enterprises grow and automate their business efficiently.',
+    5,
+    50,
+    '100%',
+    '24/7',
+    'support@milvexasolutions.in',
+    '+91 96247 45944',
+    'Anand, Gujarat, India'
+) ON CONFLICT (id) DO NOTHING;
+
+-- B. Seed Corporate Services
+INSERT INTO public.corporate_services (title, icon_name, description) VALUES
+('Android App Development', 'Smartphone', 'High performance and feature-rich Android applications tailored for smartphones and enterprise tablets.'),
+('Website Development', 'Globe', 'Modern, responsive, secure, and fast websites optimized for excellent user experience and performance.'),
+('Admin Panel Systems', 'Database', 'Powerful admin dashboards and internal management portals to track operational data, roles, and records.'),
+('Cloud & API Integration', 'Cpu', 'Secure cloud server architecture and robust API connectivity to synchronize your backend services smoothly.'),
+('Business Automation', 'Workflow', 'Automate manual workflow cycles, data logging, analytics report generation, and enhance team productivity.'),
+('Custom Software Development', 'Layers', 'Tailor-made software architectures built specifically to address the unique bottlenecks of your business model.')
+ON CONFLICT DO NOTHING;
+
+-- C. Seed Corporate Showcase Projects
+INSERT INTO public.corporate_projects (title, category, technologies, short_description, long_description, image_url, live_url, github_url) VALUES
+(
+    'Cattle Farm Management System',
+    'Web Application & Mobile Sync',
+    ARRAY['React', 'Node.js', 'Supabase', 'Capacitor', 'Chart.js'],
+    'Complete enterprise solution for cattle farm management, live health metrics tracking, milk production stats, breeding logs, and financial ledger bookkeeping.',
+    'A fully integrated multi-tenant ERP software suite designed for modern dairy farm owners. Tracks daily herd activities, automated calf life-cycle promotion rules, precise milk volume metrics, veterinarian ledger summaries, staff payroll registers, supplier purchase records, and generates balance sheets. Enabled with multi-language i18n support.',
+    'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/cattel.png',
+    'https://www.app.milvexasolutions.in',
+    '#'
+),
+(
+    'Billing Software & Invoice Desk',
+    'Web Dashboard',
+    ARRAY['React', 'PostgreSQL', 'TailwindCSS', 'PDF Generator'],
+    'Smart, robust web billing panels. Tracks transactions, issues PDF invoices instantly, keeps tax summaries, and produces monthly balance records.',
+    'High-speed business billing application designed to streamline customer checkouts. Features barcode scanner integration, print receipt configuration, tax ledger reports, custom supplier transactions history, and quick backup logs.',
+    'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/billing.png',
+    '#',
+    '#'
+)
+ON CONFLICT DO NOTHING;
+
+-- D. Seed Corporate/Admin APKs
+INSERT INTO public.corporate_apks (app_name, version, file_size, download_url, icon_type, release_date) VALUES
+('Cattle Farm App', '1.1.2', '25.4 MB', 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/milvexa_v1.1.2.apk', 'dog', '25 May 2026'),
+('Billing App', '2.1.0', '18.7 MB', '#', 'wallet', '18 May 2026'),
+('Attendance App', '1.2.0', '16.2 MB', '#', 'briefcase', '10 May 2026'),
+('Inventory App', '1.0.6', '22.8 MB', '#', 'package', '05 May 2026')
+ON CONFLICT DO NOTHING;
+
+-- E. Seed Default Admin Role Whitelist (Username: milvexa, Plain password: admin@123)
+INSERT INTO public.admin_roles (email, username, password, role, status)
+VALUES ('milvexasolutions@gmail.com', 'milvexa', 'admin@123', 'super_admin', 'active')
+ON CONFLICT (email) DO NOTHING;
+
+-- F. Seed Initial Update row
 INSERT INTO public.system_updates (id, latest_version, release_notes, download_link, is_mandatory, global_announcement)
-VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '1.0.0', 'Initial release', 'https://milvexa.in/download', false, '')
+VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '1.1.2', 'Initial release', 'https://milvexa.in/download', false, '')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- ============================================================
--- 19. ANALYTICAL VIEWS
+-- 7. ANALYTICAL VIEWS
 -- ============================================================
 
--- Daily milk production view
+-- A. Daily milk production summary view
 CREATE OR REPLACE VIEW public.daily_milk_summary AS
 SELECT
   owner_id,
@@ -582,7 +587,7 @@ SELECT
 FROM public.milk_production
 GROUP BY owner_id, production_date, shift;
 
--- Monthly finance statistics view
+-- B. Monthly finance statistics view
 CREATE OR REPLACE VIEW public.monthly_finance_summary AS
 SELECT
   owner_id,
@@ -593,7 +598,7 @@ SELECT
 FROM public.payments
 GROUP BY owner_id, month, type;
 
--- Doctor outstanding balance view
+-- C. Doctor outstanding balance view
 CREATE OR REPLACE VIEW public.doctor_balance_summary AS
 SELECT
   dl.owner_id,
@@ -606,7 +611,7 @@ FROM public.doctor_ledger dl
 JOIN public.doctors d ON d.id = dl.doctor_id
 GROUP BY dl.owner_id, dl.doctor_id, d.name;
 
--- Staff salary vs advance view
+-- D. Staff salary vs advance view
 CREATE OR REPLACE VIEW public.staff_advance_summary AS
 SELECT
   st.owner_id,
@@ -620,7 +625,7 @@ GROUP BY st.owner_id, st.staff_id, s.name;
 
 
 -- ============================================================
--- 20. STORAGE APK BUCKET SETUP
+-- 8. STORAGE APK BUCKET SETUP
 -- ============================================================
 
 -- Setup storage bucket for APK files
@@ -647,11 +652,8 @@ ON storage.objects FOR DELETE USING (bucket_id = 'apks');
 
 
 -- ============================================================
--- 21. UTILITY: STORED FUNCTION TO CHANGE USER EMAIL (WITHOUT OTP)
+-- 9. UTILITY: STORED FUNCTION TO CHANGE USER EMAIL (WITHOUT OTP)
 -- ============================================================
--- This function allows you to safely change a user's login email address
--- from the SQL editor without triggering verification OTPs.
---
 -- How to use:
 --   SELECT public.change_user_email('old@example.com', 'new@example.com');
 --
@@ -675,4 +677,3 @@ BEGIN
   WHERE email = old_email;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-

@@ -48,7 +48,16 @@ const sanitizeInput = (input) => {
 const getGlobalTickets = () => {
   try {
     const raw = localStorage.getItem(TICKETS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Proactively clean up legacy mock tickets if they exist in user's local storage
+      const mockIds = ['MVX-382901', 'MVX-492019', 'MVX-772901'];
+      const filtered = parsed.filter(t => !mockIds.includes(t.id));
+      if (filtered.length !== parsed.length) {
+        localStorage.setItem(TICKETS_KEY, JSON.stringify(filtered));
+      }
+      return filtered;
+    }
     return [];
   } catch {
     return [];

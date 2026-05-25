@@ -36,12 +36,24 @@
         }
       };
 
-      // Fallback: hide splash after 5 seconds if React app fails to signal (slow connection / offline)
-      window.addEventListener('load', () => {
-        setTimeout(() => {
+      // Detect domains synchronously to manage splash screen display
+      (function() {
+        const hostname = window.location.hostname;
+        const pathname = window.location.pathname;
+        const isAdmin = hostname.includes('admin.milvexasolutions.in') || hostname.includes('admin.localhost') || pathname.startsWith('/admin');
+        const isApp = hostname.includes('app.milvexasolutions.in') || hostname.includes('app.localhost') || pathname.startsWith('/app') || hostname === 'localhost' || hostname === '127.0.0.1' || !!window.Capacitor;
+
+        if (!isAdmin && !isApp) {
+          // Immediately hide splash screen on the corporate website
+          document.write('<style>#splash-screen { display: none !important; }</style>');
           window.hideSplash();
-        }, 5000);
-      });
+        } else {
+          // Robust immediate fallback: hide splash after 4 seconds regardless of load event (prevents hanging)
+          setTimeout(() => {
+            window.hideSplash();
+          }, 4000);
+        }
+      })();
 
       // Disable Pinch-to-Zoom
       document.addEventListener('touchstart', (e) => {

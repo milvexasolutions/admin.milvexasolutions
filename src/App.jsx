@@ -1863,7 +1863,7 @@ const AppContent = () => {
   };
 
   // Maintenance Mode screen
-  if (maintenanceInfo && !isAdminDomain && !window.location.pathname.startsWith('/admin')) {
+  if (maintenanceInfo && isAppDomain && !isAdminDomain && !window.location.pathname.startsWith('/admin')) {
     return (
       <div style={{
         position: 'fixed',

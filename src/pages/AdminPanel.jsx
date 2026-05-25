@@ -8,7 +8,7 @@ import {
   Copy, BarChart2, Dog, Milk, Package, MessageSquare,
   Activity, AlertCircle, Heart, IndianRupee, TrendingUp,
   Clock, ExternalLink, Check, Trash2, ShieldAlert, ShieldCheck,
-  Megaphone, Smartphone, Radio, UploadCloud
+  Megaphone, Smartphone, Radio, UploadCloud, Globe
 } from 'lucide-react';
 
 const ADMIN_CODE_KEY = 'milvexa_admin_code';
@@ -133,6 +133,276 @@ const AdminPanel = () => {
     }
   }, [otpCountdown]);
   const [showPasswords, setShowPasswords] = useState({});
+
+  // Corporate CMS states
+  const [corpSubTab, setCorpSubTab] = useState('profile'); // 'profile' | 'projects' | 'apks' | 'services' | 'leads'
+  const [profileForm, setProfileForm] = useState({
+    company_name: 'Milvexa Solutions Pvt. Ltd.',
+    tagline: 'Innovative Software & Mobile App Solutions',
+    description: 'We build powerful Android apps, web applications, admin panels, and business solutions that help enterprises grow and automate their business efficiently.',
+    years_experience: 5,
+    projects_completed: 50,
+    client_satisfaction: '100%',
+    support_hours: '24/7',
+    contact_email: 'support@milvexasolutions.in',
+    contact_phone: '+91 96247 45944',
+    address: 'Anand, Gujarat, India'
+  });
+  
+  const [corpServices, setCorpServices] = useState([]);
+  const [corpProjects, setCorpProjects] = useState([]);
+  const [corpApks, setCorpApks] = useState([]);
+  const [corpLeads, setCorpLeads] = useState([]);
+  
+  // CMS CRUD Form states
+  const [newService, setNewService] = useState({ title: '', description: '', icon_name: 'Smartphone' });
+  const [newProject, setNewProject] = useState({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
+  const [newApk, setNewApk] = useState({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+
+  const loadCorporateCMSData = async () => {
+    try {
+      // 1. Fetch Profile
+      const { data: prof, error: profErr } = await supabase.from('company_profile').select('*').single();
+      if (prof && !profErr) {
+        setProfileForm(prof);
+      } else {
+        const savedProf = localStorage.getItem('milvexa_corp_profile');
+        if (savedProf) setProfileForm(JSON.parse(savedProf));
+      }
+
+      // 2. Fetch Services
+      const { data: servs, error: servsErr } = await supabase.from('corporate_services').select('*').order('created_at', { ascending: true });
+      if (servs && !servsErr) {
+        setCorpServices(servs);
+      } else {
+        const savedServs = localStorage.getItem('milvexa_corp_services') || JSON.stringify([
+          { id: '1', title: 'Android App Development', description: 'High performance and feature-rich Android applications tailored for smartphones and enterprise tablets.', icon_name: 'Smartphone' },
+          { id: '2', title: 'Website Development', description: 'Modern, responsive, secure, and fast websites optimized for excellent user experience and performance.', icon_name: 'Globe' },
+          { id: '3', title: 'Admin Panel Systems', description: 'Powerful admin dashboards and internal management portals to track operational data, roles, and records.', icon_name: 'Database' },
+          { id: '4', title: 'Cloud & API Integration', description: 'Secure cloud server architecture and robust API connectivity to synchronize your backend services smoothly.', icon_name: 'Cpu' },
+          { id: '5', title: 'Business Automation', description: 'Automate manual workflow cycles, data logging, analytics report generation, and enhance team productivity.', icon_name: 'Workflow' },
+          { id: '6', title: 'Custom Software Development', description: 'Tailor-made software architectures built specifically to address the unique bottlenecks of your business model.', icon_name: 'Layers' }
+        ]);
+        setCorpServices(JSON.parse(savedServs));
+      }
+
+      // 3. Fetch Projects
+      const { data: projs, error: projsErr } = await supabase.from('corporate_projects').select('*').order('created_at', { ascending: true });
+      if (projs && !projsErr) {
+        setCorpProjects(projs);
+      } else {
+        const savedProjs = localStorage.getItem('milvexa_corp_projects') || JSON.stringify([
+          {
+            id: 'p1',
+            title: 'Cattle Farm Management System',
+            category: 'Web Application & Mobile Sync',
+            technologies: ['React', 'Node.js', 'Supabase', 'Capacitor', 'Chart.js'],
+            short_description: 'Complete enterprise solution for cattle farm management, live health metrics tracking, milk production stats, breeding logs, and financial ledger bookkeeping.',
+            long_description: 'A fully integrated multi-tenant ERP software suite designed for modern dairy farm owners. Tracks daily herd activities, automated calf life-cycle promotion rules, precise milk volume metrics, veterinarian ledger summaries, staff payroll registers, supplier purchase records, and generates balance sheets. Enabled with multi-language i18n support.',
+            image_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/cattel.png',
+            live_url: 'https://www.app.milvexasolutions.in',
+            github_url: '#'
+          },
+          {
+            id: 'p2',
+            title: 'Billing Software & Invoice Desk',
+            category: 'Web Dashboard',
+            technologies: ['React', 'PostgreSQL', 'TailwindCSS', 'PDF Generator'],
+            short_description: 'Smart, robust web billing panels. Tracks transactions, issues PDF invoices instantly, keeps tax summaries, and produces monthly balance records.',
+            long_description: 'High-speed business billing application designed to streamline customer checkouts. Features barcode scanner integration, print receipt configuration, tax ledger reports, custom supplier transactions history, and quick backup logs.',
+            image_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/billing.png',
+            live_url: '#',
+            github_url: '#'
+          }
+        ]);
+        setCorpProjects(JSON.parse(savedProjs));
+      }
+
+      // 4. Fetch APKs
+      const { data: apklist, error: apkErr } = await supabase.from('corporate_apks').select('*').order('created_at', { ascending: true });
+      if (apklist && !apkErr) {
+        setCorpApks(apklist);
+      } else {
+        const savedApks = localStorage.getItem('milvexa_corp_apks') || JSON.stringify([
+          { id: 'a1', app_name: 'Cattle Farm App', version: '1.0.0', file_size: '25.4 MB', release_date: '20 May 2026', download_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/milvexa_v1.1.1.apk', icon_type: 'dog' },
+          { id: 'a2', app_name: 'Billing App', version: '2.1.0', file_size: '18.7 MB', release_date: '18 May 2026', download_url: '#', icon_type: 'wallet' },
+          { id: 'a3', app_name: 'Attendance App', version: '1.2.0', file_size: '16.2 MB', release_date: '10 May 2026', download_url: '#', icon_type: 'briefcase' },
+          { id: 'a4', app_name: 'Inventory App', version: '1.0.6', file_size: '22.8 MB', release_date: '05 May 2026', download_url: '#', icon_type: 'package' }
+        ]);
+        setCorpApks(JSON.parse(savedApks));
+      }
+
+      // 5. Fetch Leads
+      const { data: leads, error: leadsErr } = await supabase.from('contact_queries').select('*').order('created_at', { descending: true });
+      if (leads && !leadsErr) {
+        setCorpLeads(leads);
+      } else {
+        const savedLeads = localStorage.getItem('contact_leads') || '[]';
+        setCorpLeads(JSON.parse(savedLeads));
+      }
+    } catch (e) {
+      console.warn('CMS Loader error. Utilizing fallback browser storage.', e);
+    }
+  };
+
+  const handleSaveCorpProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const { error } = await supabase
+        .from('company_profile')
+        .update(profileForm)
+        .eq('id', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22');
+      
+      if (error) throw error;
+      setSaveMsg('Corporate Profile Saved Successfully!');
+      setTimeout(() => setSaveMsg(''), 3500);
+    } catch (e) {
+      localStorage.setItem('milvexa_corp_profile', JSON.stringify(profileForm));
+      setSaveMsg('Corporate Profile Saved (Local Fallback)!');
+      setTimeout(() => setSaveMsg(''), 3500);
+    }
+  };
+
+  const handleAddCorpService = async (e) => {
+    e.preventDefault();
+    if (!newService.title || !newService.description) return;
+    try {
+      const { error } = await supabase
+        .from('corporate_services')
+        .insert([newService]);
+      if (error) throw error;
+      setNewService({ title: '', description: '', icon_name: 'Smartphone' });
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = [...corpServices, { ...newService, id: Date.now().toString() }];
+      setCorpServices(updated);
+      localStorage.setItem('milvexa_corp_services', JSON.stringify(updated));
+      setNewService({ title: '', description: '', icon_name: 'Smartphone' });
+    }
+  };
+
+  const handleDeleteCorpService = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('corporate_services')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpServices.filter(s => s.id !== id);
+      setCorpServices(updated);
+      localStorage.setItem('milvexa_corp_services', JSON.stringify(updated));
+    }
+  };
+
+  const handleAddCorpProject = async (e) => {
+    e.preventDefault();
+    if (!newProject.title || !newProject.short_description) return;
+    const projectData = {
+      ...newProject,
+      technologies: typeof newProject.technologies === 'string' 
+        ? newProject.technologies.split(',').map(t => t.trim()).filter(Boolean)
+        : newProject.technologies
+    };
+    try {
+      const { error } = await supabase
+        .from('corporate_projects')
+        .insert([projectData]);
+      if (error) throw error;
+      setNewProject({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = [...corpProjects, { ...projectData, id: Date.now().toString() }];
+      setCorpProjects(updated);
+      localStorage.setItem('milvexa_corp_projects', JSON.stringify(updated));
+      setNewProject({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
+    }
+  };
+
+  const handleDeleteCorpProject = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('corporate_projects')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpProjects.filter(p => p.id !== id);
+      setCorpProjects(updated);
+      localStorage.setItem('milvexa_corp_projects', JSON.stringify(updated));
+    }
+  };
+
+  const handleAddCorpApk = async (e) => {
+    e.preventDefault();
+    if (!newApk.app_name || !newApk.version || !newApk.download_url) return;
+    try {
+      const { error } = await supabase
+        .from('corporate_apks')
+        .insert([newApk]);
+      if (error) throw error;
+      setNewApk({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = [...corpApks, { ...newApk, id: Date.now().toString(), release_date: new Date().toLocaleDateString('en-GB') }];
+      setCorpApks(updated);
+      localStorage.setItem('milvexa_corp_apks', JSON.stringify(updated));
+      setNewApk({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+    }
+  };
+
+  const handleDeleteCorpApk = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('corporate_apks')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpApks.filter(a => a.id !== id);
+      setCorpApks(updated);
+      localStorage.setItem('milvexa_corp_apks', JSON.stringify(updated));
+    }
+  };
+
+  const handleToggleLeadRead = async (id, currentVal) => {
+    try {
+      const { error } = await supabase
+        .from('contact_queries')
+        .update({ is_read: !currentVal })
+        .eq('id', id);
+      if (error) throw error;
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpLeads.map(l => l.id === id ? { ...l, is_read: !currentVal } : l);
+      setCorpLeads(updated);
+      localStorage.setItem('contact_leads', JSON.stringify(updated));
+    }
+  };
+
+  const handleDeleteLead = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('contact_queries')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpLeads.filter(l => l.id !== id);
+      setCorpLeads(updated);
+      localStorage.setItem('contact_leads', JSON.stringify(updated));
+    }
+  };
+
+  useEffect(() => {
+    if (authenticated) {
+      loadCorporateCMSData();
+    }
+  }, [authenticated, activeTab]);
   const [uploadingApk, setUploadingApk] = useState(false);
   const [systemMetrics, setSystemMetrics] = useState({ cpu: 34, memory: 62, latency: 140, threatLevel: 'LOW', blockedIPs: 12 });
   
@@ -1314,6 +1584,7 @@ const AdminPanel = () => {
           {[
             { id: 'dashboard', label: 'Dashboard Overview', icon: <BarChart2 size={16} /> },
             { id: 'farmers', label: 'Farmers Registry', icon: <Users size={16} /> },
+            { id: 'corporate', label: 'Corporate CMS', icon: <Globe size={16} /> },
             { id: 'roles', label: 'Staff Roles', icon: <ShieldAlert size={16} /> },
             { id: 'security', label: 'Security & Firewall', icon: <Lock size={16} /> },
             { id: 'updates', label: 'Broadcast & Updates', icon: <Megaphone size={16} /> },
@@ -1410,6 +1681,7 @@ const AdminPanel = () => {
             <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#0F172A' }}>
               {activeTab === 'dashboard' ? 'Platform Command Center' :
                activeTab === 'farmers' ? 'Farmer Accounts Ledger' :
+               activeTab === 'corporate' ? 'Corporate Website CMS Desk' :
                activeTab === 'roles' ? 'Staff Role Management' :
                activeTab === 'security' ? 'Cybersecurity & Firewall Center' :
                activeTab === 'updates' ? 'System Broadcast & App Updates' :
@@ -2932,6 +3204,407 @@ const AdminPanel = () => {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ────────────────── 7. CORPORATE CMS TAB ────────────────── */}
+          {activeTab === 'corporate' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Sub-tabs header desk */}
+              <div style={{ display: 'flex', gap: '12px', background: 'white', padding: '12px 24px', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                {[
+                  { id: 'profile', label: 'Company Profile', count: 0 },
+                  { id: 'services', label: 'What We Offer', count: corpServices.length },
+                  { id: 'projects', label: 'Featured Projects', count: corpProjects.length },
+                  { id: 'apks', label: 'Android Apps (APKs)', count: corpApks.length },
+                  { id: 'leads', label: 'Leads Inbox', count: corpLeads.filter(l => !l.is_read).length }
+                ].map(sub => (
+                  <button
+                    key={sub.id}
+                    onClick={() => setCorpSubTab(sub.id)}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: corpSubTab === sub.id ? '#EFF6FF' : 'transparent',
+                      color: corpSubTab === sub.id ? '#2563EB' : '#64748B',
+                      fontWeight: '800',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    {sub.label}
+                    {sub.count > 0 && (
+                      <span style={{
+                        padding: '2px 6px',
+                        background: sub.id === 'leads' ? '#EF4444' : '#3B82F6',
+                        color: 'white',
+                        borderRadius: '6px',
+                        fontSize: '10px',
+                        fontWeight: '900'
+                      }}>
+                        {sub.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sub-Tab Content 1: PROFILE FORM */}
+              {corpSubTab === 'profile' && (
+                <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+                    <Globe size={18} color="#2563EB" />
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Edit Corporate Profile Details</h3>
+                  </div>
+                  <form onSubmit={handleSaveCorpProfile} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Company Name</label>
+                      <input type="text" value={profileForm.company_name} onChange={e => setProfileForm({ ...profileForm, company_name: e.target.value })} style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: '700', outline: 'none' }} required />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Tagline Header</label>
+                      <input type="text" value={profileForm.tagline} onChange={e => setProfileForm({ ...profileForm, tagline: e.target.value })} style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: '700', outline: 'none' }} required />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Hero Description</label>
+                      <textarea rows="3" value={profileForm.description} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: '600', outline: 'none', resize: 'none' }} required />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
+                      <h4 style={{ margin: '12px 0 4px', fontSize: '13px', fontWeight: '900', color: '#1E3A8A', textTransform: 'uppercase' }}>Aesthetics Achievements Counters</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>Years Experience</label>
+                          <input type="number" value={profileForm.years_experience} onChange={e => setProfileForm({ ...profileForm, years_experience: parseInt(e.target.value) || 0 })} style={{ padding: '12px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', fontWeight: '700', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>Projects Completed</label>
+                          <input type="number" value={profileForm.projects_completed} onChange={e => setProfileForm({ ...profileForm, projects_completed: parseInt(e.target.value) || 0 })} style={{ padding: '12px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', fontWeight: '700', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>Client Satisfaction</label>
+                          <input type="text" value={profileForm.client_satisfaction} onChange={e => setProfileForm({ ...profileForm, client_satisfaction: e.target.value })} style={{ padding: '12px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', fontWeight: '700', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>Support Hours</label>
+                          <input type="text" value={profileForm.support_hours} onChange={e => setProfileForm({ ...profileForm, support_hours: e.target.value })} style={{ padding: '12px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', fontWeight: '700', outline: 'none' }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
+                      <h4 style={{ margin: '12px 0 4px', fontSize: '13px', fontWeight: '900', color: '#1E3A8A', textTransform: 'uppercase' }}>Office Channels Contact</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>Contact Email</label>
+                          <input type="email" value={profileForm.contact_email} onChange={e => setProfileForm({ ...profileForm, contact_email: e.target.value })} style={{ padding: '12px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>Contact Phone</label>
+                          <input type="text" value={profileForm.contact_phone} onChange={e => setProfileForm({ ...profileForm, contact_phone: e.target.value })} style={{ padding: '12px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>Headquarters Address</label>
+                          <input type="text" value={profileForm.address} onChange={e => setProfileForm({ ...profileForm, address: e.target.value })} style={{ padding: '12px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                      <button type="submit" style={{ padding: '16px 36px', background: 'linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%)', color: 'white', border: 'none', borderRadius: '14px', fontWeight: '800', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(30, 64, 175, 0.2)' }}>
+                        <Save size={16} /> Save Company Settings
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Sub-Tab Content 2: SERVICES OFFERS GRID */}
+              {corpSubTab === 'services' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Add What We Offer Card</h3>
+                    <form onSubmit={handleAddCorpService} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Service Title</label>
+                        <input type="text" value={newService.title} onChange={e => setNewService({ ...newService, title: e.target.value })} placeholder="e.g. Website Development" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Icon Representation</label>
+                        <select value={newService.icon_name} onChange={e => setNewService({ ...newService, icon_name: e.target.value })} style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }}>
+                          <option value="Smartphone">Smartphone (Android App)</option>
+                          <option value="Globe">Globe (Website)</option>
+                          <option value="Database">Database (Admin Panel)</option>
+                          <option value="Cpu">CPU (Cloud & APIs)</option>
+                          <option value="Workflow">Workflow (Automation)</option>
+                          <option value="Layers">Layers (Custom Software)</option>
+                        </select>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Service Description</label>
+                        <textarea rows="3" value={newService.description} onChange={e => setNewService({ ...newService, description: e.target.value })} placeholder="Briefly detail what clients will receive..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none', resize: 'none' }} required />
+                      </div>
+                      <button type="submit" style={{ padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <Save size={15} /> Add Service Card
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* List active services */}
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Active Service Cards ({corpServices.length})</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {corpServices.map(serv => (
+                        <div key={serv.id} style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1.5px solid #F1F5F9', borderRadius: '16px' }}>
+                          <div>
+                            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#0F172A' }}>{serv.title}</h4>
+                            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '600' }}>{serv.icon_name} Icon</p>
+                          </div>
+                          <button onClick={() => handleDeleteCorpService(serv.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab Content 3: PROJECTS SHOWCASE */}
+              {corpSubTab === 'projects' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Add Featured Project</h3>
+                    <form onSubmit={handleAddCorpProject} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Project Title</label>
+                        <input type="text" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} placeholder="e.g. Cattle Farm Management" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Category</label>
+                          <input type="text" value={newProject.category} onChange={e => setNewProject({ ...newProject, category: e.target.value })} placeholder="e.g. Web Application" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Tech tags (comma sep)</label>
+                          <input type="text" value={newProject.technologies} onChange={e => setNewProject({ ...newProject, technologies: e.target.value })} placeholder="React, Node.js, Supabase" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Short Description</label>
+                        <input type="text" value={newProject.short_description} onChange={e => setNewProject({ ...newProject, short_description: e.target.value })} placeholder="A premium agrotech solution..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} required />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Long Details Specification</label>
+                        <textarea rows="3" value={newProject.long_description} onChange={e => setNewProject({ ...newProject, long_description: e.target.value })} placeholder="Detail the full architecture..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none', resize: 'none' }} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Mockup/Image URL</label>
+                        <input type="text" value={newProject.image_url} onChange={e => setNewProject({ ...newProject, image_url: e.target.value })} placeholder="https://..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Live Demo Link</label>
+                          <input type="text" value={newProject.live_url} onChange={e => setNewProject({ ...newProject, live_url: e.target.value })} placeholder="https://..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>GitHub Source</label>
+                          <input type="text" value={newProject.github_url} onChange={e => setNewProject({ ...newProject, github_url: e.target.value })} placeholder="#" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} />
+                        </div>
+                      </div>
+                      <button type="submit" style={{ padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <Save size={15} /> Add Featured Project
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* List active projects */}
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Active Featured Projects ({corpProjects.length})</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {corpProjects.map(proj => (
+                        <div key={proj.id} style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1.5px solid #F1F5F9', borderRadius: '16px' }}>
+                          <div>
+                            <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: '900', color: '#0F172A' }}>{proj.title}</h4>
+                            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '700' }}>{proj.category}</p>
+                          </div>
+                          <button onClick={() => handleDeleteCorpProject(proj.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab Content 4: APK DOWNLOADS DESK */}
+              {corpSubTab === 'apks' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Add Downloadable Android App</h3>
+                    <form onSubmit={handleAddCorpApk} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>App Name</label>
+                        <input type="text" value={newApk.app_name} onChange={e => setNewApk({ ...newApk, app_name: e.target.value })} placeholder="e.g. Cattle Farm App" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Version Code</label>
+                          <input type="text" value={newApk.version} onChange={e => setNewApk({ ...newApk, version: e.target.value })} placeholder="e.g. 1.1.1" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>File Size</label>
+                          <input type="text" value={newApk.file_size} onChange={e => setNewApk({ ...newApk, file_size: e.target.value })} placeholder="e.g. 25.4 MB" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Downloadable Binary Link (APK)</label>
+                        <input type="text" value={newApk.download_url} onChange={e => setNewApk({ ...newApk, download_url: e.target.value })} placeholder="https://..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} required />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Card Icon Logo</label>
+                        <select value={newApk.icon_type} onChange={e => setNewApk({ ...newApk, icon_type: e.target.value })} style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }}>
+                          <option value="dog">🐄 Cattle App Icon</option>
+                          <option value="wallet">💳 Billing App Icon</option>
+                          <option value="briefcase">💼 Attendance App Icon</option>
+                          <option value="package">📦 Inventory App Icon</option>
+                        </select>
+                      </div>
+                      <button type="submit" style={{ padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <Save size={15} /> Add Downloadable App
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* List active APK downloads */}
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Active Downloadable APKs ({corpApks.length})</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {corpApks.map(apk => (
+                        <div key={apk.id} style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1.5px solid #F1F5F9', borderRadius: '16px' }}>
+                          <div>
+                            <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: '900', color: '#0F172A' }}>{apk.app_name}</h4>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>v{apk.version}</span>
+                              <span style={{ fontSize: '12px', color: '#E2E8F0' }}>|</span>
+                              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>{apk.file_size}</span>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <div style={{ width: '36px', height: '36px', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '2px', background: 'white' }}>
+                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodeURIComponent(apk.download_url)}`} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            </div>
+                            <button onClick={() => handleDeleteCorpApk(apk.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab Content 5: LEADS SUBMISSIONS INBOX */}
+              {corpSubTab === 'leads' && (
+                <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+                    <Mail size={18} color="#2563EB" />
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Client Leads Submitted Inbox</h3>
+                  </div>
+
+                  {corpLeads.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748B', fontWeight: '600' }}>
+                      No client leads or contact queries submitted yet.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {corpLeads.map(lead => (
+                        <div 
+                          key={lead.id} 
+                          style={{
+                            padding: '24px',
+                            border: `1.5px solid ${lead.is_read ? '#F1F5F9' : '#DBEAFE'}`,
+                            background: lead.is_read ? 'white' : '#EFF6FF',
+                            borderRadius: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <span style={{ fontSize: '11px', fontWeight: '900', color: lead.is_read ? '#64748B' : '#2563EB', textTransform: 'uppercase', background: lead.is_read ? '#F1F5F9' : '#DBEAFE', padding: '4px 8px', borderRadius: '6px', marginRight: '8px' }}>
+                                {lead.is_read ? 'Read' : 'New Lead'}
+                              </span>
+                              <h4 style={{ display: 'inline-block', margin: 0, fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>{lead.name}</h4>
+                            </div>
+                            <span style={{ fontSize: '11.5px', color: '#94A3B8', fontWeight: '800' }}>{new Date(lead.created_at).toLocaleDateString('en-GB')} {new Date(lead.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+
+                          {/* Contact Details */}
+                          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', fontWeight: '700', color: '#475569' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Mail size={13} /> {lead.email}
+                            </div>
+                            {lead.phone && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Phone size={13} /> {lead.phone}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Message content */}
+                          <p style={{ margin: 0, fontSize: '14px', color: '#0F172A', lineHeight: 1.5, fontWeight: '600', padding: '12px', background: 'white', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {lead.message}
+                          </p>
+
+                          {/* Action panel */}
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #F1F5F9', paddingTop: '12px', marginTop: '4px' }}>
+                            <button
+                              onClick={() => handleToggleLeadRead(lead.id, lead.is_read)}
+                              style={{
+                                padding: '8px 16px',
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#2563EB',
+                                fontWeight: '800',
+                                fontSize: '12px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {lead.is_read ? 'Mark Unread' : 'Mark Read'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteLead(lead.id)}
+                              style={{
+                                padding: '8px 16px',
+                                background: '#FEF2F2',
+                                color: '#EF4444',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontWeight: '800',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              <Trash2 size={13} /> Delete Query
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

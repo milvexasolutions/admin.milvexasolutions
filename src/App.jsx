@@ -118,6 +118,7 @@ const DairyLedger = React.lazy(() => import('./pages/DairyLedger'));
 const BalanceSheet = React.lazy(() => import('./pages/BalanceSheet'));
 const BorrowLend = React.lazy(() => import('./pages/BorrowLend'));
 const Notifications = React.lazy(() => import('./pages/Notifications'));
+const CorporateWebsite = React.lazy(() => import('./pages/CorporateWebsite'));
 
 // Page Imports removed as requested
 
@@ -1589,7 +1590,8 @@ const AppContent = () => {
   const location = useLocation();
   const { isLargeScreen } = useResponsive();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
-  const isAdminDomain = window.location.hostname.includes('admin.milvexasolutions.in') || window.location.hostname.includes('admin.localhost');
+  const isAdminDomain = window.location.hostname.includes('admin.milvexasolutions.in') || window.location.hostname.includes('admin.localhost') || window.location.pathname.startsWith('/admin');
+  const isAppDomain = window.location.hostname.includes('app.milvexasolutions.in') || window.location.hostname.includes('app.localhost') || window.location.pathname.startsWith('/app');
 
   React.useEffect(() => {
     if (isSidebarOpen) {
@@ -2293,6 +2295,16 @@ const AppContent = () => {
       <React.Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="*" element={<AdminPanel />} />
+        </Routes>
+      </React.Suspense>
+    );
+  }
+
+  if (!isAppDomain) {
+    return (
+      <React.Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="*" element={<CorporateWebsite />} />
         </Routes>
       </React.Suspense>
     );

@@ -226,7 +226,7 @@ const AdminPanel = () => {
         setCorpApks(apklist);
       } else {
         const savedApks = localStorage.getItem('milvexa_corp_apks') || JSON.stringify([
-          { id: 'a1', app_name: 'Cattle Farm App', version: '1.0.0', file_size: '25.4 MB', release_date: '20 May 2026', download_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/milvexa_v1.1.1.apk', icon_type: 'dog' },
+          { id: 'a1', app_name: 'Cattle Farm App', version: '1.0.0', file_size: '25.4 MB', release_date: '20 May 2026', download_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/milvexa_v1.1.2.apk', icon_type: 'dog' },
           { id: 'a2', app_name: 'Billing App', version: '2.1.0', file_size: '18.7 MB', release_date: '18 May 2026', download_url: '#', icon_type: 'wallet' },
           { id: 'a3', app_name: 'Attendance App', version: '1.2.0', file_size: '16.2 MB', release_date: '10 May 2026', download_url: '#', icon_type: 'briefcase' },
           { id: 'a4', app_name: 'Inventory App', version: '1.0.6', file_size: '22.8 MB', release_date: '05 May 2026', download_url: '#', icon_type: 'package' }
@@ -488,6 +488,7 @@ const AdminPanel = () => {
     }
   }, [authenticated, activeTab]);
   const [uploadingApk, setUploadingApk] = useState(false);
+  const [isUpdatePushed, setIsUpdatePushed] = useState(true);
   const [systemMetrics, setSystemMetrics] = useState({ cpu: 34, memory: 62, latency: 140, threatLevel: 'LOW', blockedIPs: 12 });
   
   // Advanced Security States
@@ -703,11 +704,15 @@ const AdminPanel = () => {
               isMaintenance: isMaint,
               maintenanceMessage: maintMsg
             });
+            setIsUpdatePushed(true); // Fetched data is already deployed
           }
         } catch (err) {
           // Check local cache if DB error
           const local = localStorage.getItem('milvexa_system_updates');
-          if (local) setUpdateForm(JSON.parse(local));
+          if (local) {
+            setUpdateForm(JSON.parse(local));
+            setIsUpdatePushed(true);
+          }
         }
       };
       fetchUpdates();
@@ -727,6 +732,14 @@ const AdminPanel = () => {
     setSaveErr('');
 
     try {
+      // 1. Keep track of the old APK filename to delete later from Supabase Storage
+      const oldUrl = updateForm.downloadLink;
+      let oldFileName = null;
+      if (oldUrl && oldUrl.includes('/storage/v1/object/public/apks/')) {
+        oldFileName = oldUrl.split('/storage/v1/object/public/apks/')[1];
+      }
+
+      // 2. Upload the new APK
       const fileName = `milvexa-release-${updateForm.version.replace(/\./g, '_')}-${Date.now()}.apk`;
       
       const { data, error } = await supabase.storage
@@ -739,8 +752,22 @@ const AdminPanel = () => {
       const { data: publicData } = supabase.storage.from('apks').getPublicUrl(fileName);
       
       setUpdateForm(prev => ({ ...prev, downloadLink: publicData.publicUrl }));
+      setIsUpdatePushed(false); // Enable the Deploy button since new APK is uploaded
       setSaveMsg("APK Uploaded successfully! Public link generated.");
       setTimeout(() => setSaveMsg(''), 3000);
+
+      // 3. Delete the old APK file if it exists in Supabase Storage
+      if (oldFileName) {
+        console.log("Deleting old APK from storage:", oldFileName);
+        const { error: deleteErr } = await supabase.storage
+          .from('apks')
+          .remove([oldFileName]);
+        if (deleteErr) {
+          console.warn("Could not delete old APK file:", deleteErr);
+        } else {
+          console.log("Successfully deleted old APK from Supabase storage.");
+        }
+      }
 
     } catch (err) {
       console.error(err);
@@ -831,12 +858,14 @@ const AdminPanel = () => {
       
       // Also cache to localStorage as backup
       localStorage.setItem('milvexa_system_updates', JSON.stringify(updateForm));
+      setIsUpdatePushed(true); // Successfully deployed and disabled!
     } catch (err) {
       console.error('Update save error:', err);
       // Fallback local persistence if SQL isn't run yet
       localStorage.setItem('milvexa_system_updates', JSON.stringify(updateForm));
       setSaveMsg('System Update saved to fallback local cache! (Run SQL schema for full DB sync)');
       setTimeout(() => setSaveMsg(''), 3000);
+      setIsUpdatePushed(true); // Disable deploy button even for local persistence fallback
     }
   };
 
@@ -980,22 +1009,57 @@ const AdminPanel = () => {
 
     setIsLoggingIn(true);
     try {
-      // Layer 2: Sanitization
-      const safeEmail = sanitizeInput(adminEmail);
+      // Layer 2: Sanitization & Normalization
+      const safeInput = sanitizeInput(adminEmail.trim().toLowerCase());
 
-      const { data: roleData, error: roleErr } = await supabase
-        .from('admin_roles')
-        .select('*')
-        .eq('email', safeEmail)
-        .single();
+      let roleData = null;
+      let roleErr = null;
+
+      // Check if it's an email (contains @) or a username
+      if (safeInput.includes('@')) {
+        const { data, error } = await supabase
+          .from('admin_roles')
+          .select('*')
+          .eq('email', safeInput)
+          .maybeSingle();
+        roleData = data;
+        roleErr = error;
+      } else {
+        // Try searching by username column first
+        const { data, error } = await supabase
+          .from('admin_roles')
+          .select('*')
+          .eq('username', safeInput)
+          .maybeSingle();
         
-      if (roleErr || !roleData) {
-        throw new Error("Email not authorized. Please contact Super Admin.");
+        roleData = data;
+        roleErr = error;
+
+        // Fallback: If not found, try matching by email prefix (e.g. 'milvexasolutions' for 'milvexasolutions@gmail.com')
+        if (!roleData) {
+          const { data: allRoles } = await supabase
+            .from('admin_roles')
+            .select('*');
+          
+          if (allRoles) {
+            roleData = allRoles.find(r => {
+              const prefix = r.email.split('@')[0].toLowerCase();
+              return prefix === safeInput;
+            });
+          }
+        }
+      }
+        
+      if (!roleData) {
+        throw new Error("Account not authorized. Please contact Super Admin.");
       }
       
       if (roleData.status === 'blocked') {
         throw new Error("Access Blocked! Contact Super Admin.");
       }
+
+      // Crucial: Set state to the retrieved actual email so downstream processes (like OTP send) work perfectly
+      setAdminEmail(roleData.email);
       
       if (!roleData.password || roleData.password.trim() === '') {
         setIsSetupMode(true);
@@ -1427,8 +1491,8 @@ const AdminPanel = () => {
 
           <form onSubmit={loginStep === 1 ? handleNextStep : loginStep === 2 ? handleFinalLogin : handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
             <input
-              type="email"
-              placeholder="Admin Email Address"
+              type="text"
+              placeholder="Admin Email or Username"
               value={adminEmail}
               onChange={e => setAdminEmail(e.target.value)}
               readOnly={loginStep > 1}
@@ -1571,7 +1635,7 @@ const AdminPanel = () => {
                   textUnderlineOffset: '3px'
                 }}
               >
-                Change Email
+                Change User / Email
               </button>
 
               {loginStep === 3 && (
@@ -2885,7 +2949,7 @@ const AdminPanel = () => {
                     </div>
                   </div>
                   <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: '#0F172A' }}>100%</h3>
-                  <p style={{ margin: '4px 0 10px', fontSize: '11px', color: '#059669', fontWeight: '800' }}>All active devices upgraded to v{updateForm.version || '1.1.1'}</p>
+                  <p style={{ margin: '4px 0 10px', fontSize: '11px', color: '#059669', fontWeight: '800' }}>All active devices upgraded to v{updateForm.version || '1.1.2'}</p>
                   <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{ width: '100%', height: '100%', background: '#10B981', borderRadius: '3px' }}></div>
                   </div>
@@ -2947,11 +3011,11 @@ const AdminPanel = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Version Code</label>
-                        <input type="text" value={updateForm.version} onChange={e => setUpdateForm({ ...updateForm, version: e.target.value })} placeholder="e.g. 2.0.0" style={{ width: '100%', padding: '14px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: '800', color: '#0F172A', outline: 'none' }} required />
+                        <input type="text" value={updateForm.version} onChange={e => { setUpdateForm({ ...updateForm, version: e.target.value }); setIsUpdatePushed(false); }} placeholder="e.g. 2.0.0" style={{ width: '100%', padding: '14px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: '800', color: '#0F172A', outline: 'none' }} required />
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Mandatory Update?</label>
-                        <button type="button" onClick={() => setUpdateForm({ ...updateForm, isMandatory: !updateForm.isMandatory })} style={{ width: '100%', padding: '14px 16px', background: updateForm.isMandatory ? '#FEF2F2' : '#F8FAFC', border: `1.5px solid ${updateForm.isMandatory ? '#FCA5A5' : '#E2E8F0'}`, borderRadius: '12px', fontSize: '13px', fontWeight: '800', color: updateForm.isMandatory ? '#DC2626' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <button type="button" onClick={() => { setUpdateForm({ ...updateForm, isMandatory: !updateForm.isMandatory }); setIsUpdatePushed(false); }} style={{ width: '100%', padding: '14px 16px', background: updateForm.isMandatory ? '#FEF2F2' : '#F8FAFC', border: `1.5px solid ${updateForm.isMandatory ? '#FCA5A5' : '#E2E8F0'}`, borderRadius: '12px', fontSize: '13px', fontWeight: '800', color: updateForm.isMandatory ? '#DC2626' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s' }}>
                           {updateForm.isMandatory ? <CheckCircle size={16} /> : <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid #94A3B8' }} />}
                           {updateForm.isMandatory ? 'YES, FORCE UPDATE' : 'NO, OPTIONAL'}
                         </button>
@@ -2966,16 +3030,41 @@ const AdminPanel = () => {
                           <input type="file" accept=".apk" onChange={handleApkUpload} disabled={uploadingApk} style={{ display: 'none' }} />
                         </label>
                       </div>
-                      <input type="url" value={updateForm.downloadLink} onChange={e => setUpdateForm({ ...updateForm, downloadLink: e.target.value })} placeholder="Or paste external link (e.g., Google Drive)..." style={{ width: '100%', padding: '12px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', color: '#2563EB', outline: 'none' }} required />
+                      <input type="url" value={updateForm.downloadLink} onChange={e => { setUpdateForm({ ...updateForm, downloadLink: e.target.value }); setIsUpdatePushed(false); }} placeholder="Or paste external link (e.g., Google Drive)..." style={{ width: '100%', padding: '12px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', color: '#2563EB', outline: 'none' }} required />
                     </div>
                     
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Release Notes / What's New</label>
-                      <textarea value={updateForm.releaseNotes} onChange={e => setUpdateForm({ ...updateForm, releaseNotes: e.target.value })} placeholder="Describe what changed..." rows="3" style={{ width: '100%', padding: '14px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', color: '#0F172A', outline: 'none', resize: 'vertical' }} />
+                      <textarea value={updateForm.releaseNotes} onChange={e => { setUpdateForm({ ...updateForm, releaseNotes: e.target.value }); setIsUpdatePushed(false); }} placeholder="Describe what changed..." rows="3" style={{ width: '100%', padding: '14px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', color: '#0F172A', outline: 'none', resize: 'vertical' }} />
                     </div>
 
-                    <button type="submit" style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', color: 'white', border: 'none', borderRadius: '14px', fontSize: '13px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px', boxShadow: '0 10px 20px rgba(37, 99, 235, 0.2)' }}>
-                      <UploadCloud size={18} /> DEPLOY APK UPDATE TO ALL USERS
+                    <button 
+                      type="submit" 
+                      disabled={isUpdatePushed || uploadingApk}
+                      style={{ 
+                        width: '100%', 
+                        padding: '16px', 
+                        background: (isUpdatePushed || uploadingApk) ? '#94A3B8' : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '14px', 
+                        fontSize: '13px', 
+                        fontWeight: '900', 
+                        cursor: (isUpdatePushed || uploadingApk) ? 'not-allowed' : 'pointer', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '8px', 
+                        marginTop: '10px', 
+                        boxShadow: (isUpdatePushed || uploadingApk) ? 'none' : '0 10px 20px rgba(37, 99, 235, 0.2)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {isUpdatePushed ? (
+                        <><CheckCircle size={18} /> ✓ LATEST APK UPDATE IS ALREADY DEPLOYED</>
+                      ) : (
+                        <><UploadCloud size={18} /> DEPLOY APK UPDATE TO ALL USERS</>
+                      )}
                     </button>
                   </form>
                 </div>
@@ -3539,7 +3628,7 @@ const AdminPanel = () => {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Version Code</label>
-                          <input type="text" value={newApk.version} onChange={e => setNewApk({ ...newApk, version: e.target.value })} placeholder="e.g. 1.1.1" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                          <input type="text" value={newApk.version} onChange={e => setNewApk({ ...newApk, version: e.target.value })} placeholder="e.g. 1.1.2" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>File Size</label>

@@ -1591,7 +1591,7 @@ const AppContent = () => {
   const { isLargeScreen } = useResponsive();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const isAdminDomain = window.location.hostname.includes('admin.milvexasolutions.in') || window.location.hostname.includes('admin.localhost') || window.location.pathname.startsWith('/admin');
-  const isAppDomain = window.location.hostname.includes('app.milvexasolutions.in') || window.location.hostname.includes('app.localhost') || window.location.pathname.startsWith('/app');
+  const isAppDomain = window.location.hostname.includes('app.milvexasolutions.in') || window.location.hostname.includes('app.localhost') || window.location.pathname.startsWith('/app') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (typeof window !== 'undefined' && !!window.Capacitor);
 
   React.useEffect(() => {
     if (isSidebarOpen) {
@@ -1613,7 +1613,7 @@ const AppContent = () => {
     }
   }, [isAdminDomain, isAppDomain, location.pathname]);
 
-  const APP_VERSION = "v1.1.1"; // Current installed version
+  const APP_VERSION = "v1.1.2"; // Current installed version
 
   // Expose triggers to allow Settings.jsx to initiate a manual update check
   React.useEffect(() => {

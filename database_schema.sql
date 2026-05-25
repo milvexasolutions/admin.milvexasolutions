@@ -73,6 +73,49 @@ CREATE TABLE IF NOT EXISTS contact_queries (
 );
 
 -- =========================================================================
+-- ROW LEVEL SECURITY (RLS) ENABLEMENT & POLICIES
+-- =========================================================================
+-- Enables public read and write so the Admin Panel and Corporate Website
+-- can fetch and save records seamlessly.
+
+ALTER TABLE company_profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE corporate_services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE corporate_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE corporate_apks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_queries ENABLE ROW LEVEL SECURITY;
+
+-- Policies for company_profile
+DROP POLICY IF EXISTS "Public Read company_profile" ON company_profile;
+CREATE POLICY "Public Read company_profile" ON company_profile FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage company_profile" ON company_profile;
+CREATE POLICY "Public Manage company_profile" ON company_profile FOR ALL USING (true) WITH CHECK (true);
+
+-- Policies for corporate_services
+DROP POLICY IF EXISTS "Public Read corporate_services" ON corporate_services;
+CREATE POLICY "Public Read corporate_services" ON corporate_services FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage corporate_services" ON corporate_services;
+CREATE POLICY "Public Manage corporate_services" ON corporate_services FOR ALL USING (true) WITH CHECK (true);
+
+-- Policies for corporate_projects
+DROP POLICY IF EXISTS "Public Read corporate_projects" ON corporate_projects;
+CREATE POLICY "Public Read corporate_projects" ON corporate_projects FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage corporate_projects" ON corporate_projects;
+CREATE POLICY "Public Manage corporate_projects" ON corporate_projects FOR ALL USING (true) WITH CHECK (true);
+
+-- Policies for corporate_apks
+DROP POLICY IF EXISTS "Public Read corporate_apks" ON corporate_apks;
+CREATE POLICY "Public Read corporate_apks" ON corporate_apks FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage corporate_apks" ON corporate_apks;
+CREATE POLICY "Public Manage corporate_apks" ON corporate_apks FOR ALL USING (true) WITH CHECK (true);
+
+-- Policies for contact_queries
+DROP POLICY IF EXISTS "Public Read contact_queries" ON contact_queries;
+CREATE POLICY "Public Read contact_queries" ON contact_queries FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage contact_queries" ON contact_queries;
+CREATE POLICY "Public Manage contact_queries" ON contact_queries FOR ALL USING (true) WITH CHECK (true);
+
+-- =========================================================================
+
 -- INITIAL SEED DATA (Pre-populates your website with exact layout data)
 -- =========================================================================
 

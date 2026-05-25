@@ -515,6 +515,7 @@ CREATE POLICY "Owner full access on dairy_ledger"
 CREATE TABLE IF NOT EXISTS public.admin_roles (
     id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email       TEXT UNIQUE NOT NULL,
+    username    TEXT UNIQUE, -- Custom username for login
     password    TEXT, -- Plain text password for admin panel visibility
     role        TEXT CHECK (role IN ('super_admin', 'staff')),
     status      TEXT DEFAULT 'active' CHECK (status IN ('active', 'blocked')),
@@ -522,15 +523,19 @@ CREATE TABLE IF NOT EXISTS public.admin_roles (
     updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ensure username column exists if the table was already created
+ALTER TABLE public.admin_roles ADD COLUMN IF NOT EXISTS username TEXT UNIQUE;
+
 ALTER TABLE public.admin_roles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public Manage Admin Roles" ON public.admin_roles;
 CREATE POLICY "Public Manage Admin Roles" ON public.admin_roles FOR ALL USING (true);
 
 -- Insert Default Super Admin
-INSERT INTO public.admin_roles (email, password, role, status)
-VALUES ('milvexasolutions@gmail.com', 'admin@123', 'super_admin', 'active')
+INSERT INTO public.admin_roles (email, username, password, role, status)
+VALUES ('milvexasolutions@gmail.com', 'milvexa', 'admin@123', 'super_admin', 'active')
 ON CONFLICT (email) DO NOTHING;
+
 
 
 -- ============================================================

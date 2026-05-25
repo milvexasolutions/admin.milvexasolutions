@@ -158,6 +158,8 @@ const AdminPanel = () => {
   const [newService, setNewService] = useState({ title: '', description: '', icon_name: 'Smartphone' });
   const [newProject, setNewProject] = useState({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
   const [newApk, setNewApk] = useState({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+  const [apkUploadLoading, setApkUploadLoading] = useState(false);
+  const [logoUploadLoading, setLogoUploadLoading] = useState(false);
 
   const loadCorporateCMSData = async () => {
     try {
@@ -335,18 +337,100 @@ const AdminPanel = () => {
     }
   };
 
+  const handleApkFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.apk')) {
+      alert("Please upload a valid .apk file.");
+      return;
+    }
+
+    setApkUploadLoading(true);
+    try {
+      const fileName = `corporate-apks/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('apks')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('apks')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData?.publicUrl || '';
+      const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+      
+      setNewApk(prev => ({
+        ...prev,
+        download_url: publicUrl,
+        file_size: `${sizeInMB} MB`
+      }));
+      
+      alert("APK File uploaded successfully!");
+    } catch (err) {
+      console.error("APK upload failed:", err);
+      alert("APK upload failed: " + (err.message || err));
+    } finally {
+      setApkUploadLoading(false);
+    }
+  };
+
+  const handleLogoFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert("Please upload a valid image file (JPG, JPEG, PNG).");
+      return;
+    }
+
+    setLogoUploadLoading(true);
+    try {
+      const fileName = `logos/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('apks')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('apks')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData?.publicUrl || '';
+      
+      setNewApk(prev => ({
+        ...prev,
+        icon_type: publicUrl
+      }));
+      
+      alert("Logo image uploaded successfully!");
+    } catch (err) {
+      console.error("Logo upload failed:", err);
+      alert("Logo upload failed: " + (err.message || err));
+    } finally {
+      setLogoUploadLoading(false);
+    }
+  };
+
   const handleAddCorpApk = async (e) => {
     e.preventDefault();
     if (!newApk.app_name || !newApk.version || !newApk.download_url) return;
+    const apkData = {
+      ...newApk,
+      release_date: newApk.release_date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
     try {
       const { error } = await supabase
         .from('corporate_apks')
-        .insert([newApk]);
+        .insert([apkData]);
       if (error) throw error;
       setNewApk({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
       loadCorporateCMSData();
     } catch (e) {
-      const updated = [...corpApks, { ...newApk, id: Date.now().toString(), release_date: new Date().toLocaleDateString('en-GB') }];
+      const updated = [...corpApks, { ...apkData, id: Date.now().toString() }];
       setCorpApks(updated);
       localStorage.setItem('milvexa_corp_apks', JSON.stringify(updated));
       setNewApk({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
@@ -3465,15 +3549,57 @@ const AdminPanel = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Downloadable Binary Link (APK)</label>
                         <input type="text" value={newApk.download_url} onChange={e => setNewApk({ ...newApk, download_url: e.target.value })} placeholder="https://..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} required />
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '700', color: '#94A3B8' }}>OR</span>
+                          <label style={{
+                            padding: '8px 16px',
+                            background: '#F1F5F9',
+                            border: '1px dashed #CBD5E1',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            color: '#475569',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}>
+                            {apkUploadLoading ? 'Uploading...' : 'Upload .APK File'}
+                            <input type="file" accept=".apk" onChange={handleApkFileUpload} style={{ display: 'none' }} disabled={apkUploadLoading} />
+                          </label>
+                        </div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Card Icon Logo</label>
-                        <select value={newApk.icon_type} onChange={e => setNewApk({ ...newApk, icon_type: e.target.value })} style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }}>
-                          <option value="dog">🐄 Cattle App Icon</option>
-                          <option value="wallet">💳 Billing App Icon</option>
-                          <option value="briefcase">💼 Attendance App Icon</option>
-                          <option value="package">📦 Inventory App Icon</option>
-                        </select>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Card Icon Logo (JPG/PNG)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <label style={{
+                            flex: 1,
+                            padding: '14px',
+                            background: '#F8FAFC',
+                            border: '1.5px dashed #CBD5E1',
+                            borderRadius: '12px',
+                            fontSize: '13px',
+                            fontWeight: '700',
+                            color: '#64748B',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            textAlign: 'center'
+                          }}>
+                            {logoUploadLoading ? 'Uploading Image...' : (newApk.icon_type.startsWith('http') ? '🖼️ Custom Logo Uploaded (Click to Change)' : '📁 Select JPG/PNG Logo Image')}
+                            <input type="file" accept="image/jpeg,image/png,image/jpg" onChange={handleLogoFileUpload} style={{ display: 'none' }} disabled={logoUploadLoading} />
+                          </label>
+                        </div>
+                        
+                        {newApk.icon_type.startsWith('http') && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', padding: '8px 12px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                            <img src={newApk.icon_type} alt="Preview" style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover' }} />
+                            <span style={{ fontSize: '11px', fontWeight: '700', color: '#10B981' }}>Logo uploaded successfully!</span>
+                          </div>
+                        )}
                       </div>
                       <button type="submit" style={{ padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                         <Save size={15} /> Add Downloadable App
@@ -3487,12 +3613,23 @@ const AdminPanel = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {corpApks.map(apk => (
                         <div key={apk.id} style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1.5px solid #F1F5F9', borderRadius: '16px' }}>
-                          <div>
-                            <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: '900', color: '#0F172A' }}>{apk.app_name}</h4>
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
-                              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>v{apk.version}</span>
-                              <span style={{ fontSize: '12px', color: '#E2E8F0' }}>|</span>
-                              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>{apk.file_size}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {apk.icon_type.startsWith('http') ? (
+                              <img src={apk.icon_type} alt="logo" style={{ width: '38px', height: '38px', objectFit: 'cover', borderRadius: '10px' }} />
+                            ) : (
+                              <div style={{ width: '38px', height: '38px', background: '#F1F5F9', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                                {apk.icon_type === 'dog' ? '🐄' : apk.icon_type === 'wallet' ? '💳' : apk.icon_type === 'briefcase' ? '💼' : apk.icon_type === 'package' ? '📦' : '📱'}
+                              </div>
+                            )}
+                            <div>
+                              <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: '900', color: '#0F172A' }}>
+                                {apk.app_name.toUpperCase().includes('MILVEXA') ? profileForm.company_name : apk.app_name}
+                              </h4>
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>v{apk.version}</span>
+                                <span style={{ fontSize: '12px', color: '#E2E8F0' }}>|</span>
+                                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>{apk.file_size}</span>
+                              </div>
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

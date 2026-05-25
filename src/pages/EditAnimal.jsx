@@ -12,11 +12,13 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import PageHeader from '../components/PageHeader';
+import { useTranslation } from 'react-i18next';
 
 const EditAnimal = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [formData, setFormData] = useState({
@@ -216,8 +218,9 @@ const EditAnimal = () => {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Animal Category Toggle */}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>Animal Category</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>{t('animal_category', 'Animal Category')}</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '16px', gap: '4px' }}>
                 {['Cow', 'Buffalo', 'Calf', 'Bull'].map((cat) => (
                   <button
@@ -240,7 +243,7 @@ const EditAnimal = () => {
                       transition: '0.2s'
                     }}
                   >
-                    {cat}
+                    {t(cat.toLowerCase(), cat)}
                   </button>
                 ))}
               </div>
@@ -249,7 +252,7 @@ const EditAnimal = () => {
             {/* Calf Mother Type Selector */}
             {formData.type === 'Calf' && (
               <div className="animate-fade-in">
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>Calf Type (बछड़े का प्रकार)</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>{t('calf_type', 'Calf Type')}</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '16px', gap: '4px' }}>
                   {['Cow', 'Buffalo'].map((mType) => (
                     <button
@@ -268,7 +271,7 @@ const EditAnimal = () => {
                         transition: '0.2s'
                       }}
                     >
-                      {mType === 'Cow' ? 'Cow Calf (गाय का बछड़ा)' : 'Buffalo Calf (भैंस का बछड़ा)'}
+                      {mType === 'Cow' ? t('cow_calf', 'Cow Calf') : t('buffalo_calf', 'Buffalo Calf')}
                     </button>
                   ))}
                 </div>
@@ -278,7 +281,7 @@ const EditAnimal = () => {
             {/* Calf Gender Selector */}
             {formData.type === 'Calf' && (
               <div className="animate-fade-in">
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>Calf Gender (बछड़े का लिंग)</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>{t('calf_gender', 'Calf Gender')}</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '16px', gap: '4px' }}>
                   {['Male', 'Female'].map((gen) => (
                     <button
@@ -297,15 +300,16 @@ const EditAnimal = () => {
                         transition: '0.2s'
                       }}
                     >
-                      {gen === 'Male' ? 'Male (बछड़ा)' : 'Female (बछड़ी)'}
+                      {gen === 'Male' ? t('calf_male', 'Male') : t('calf_female', 'Female')}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* Breed Field moved here */}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>Breed</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '8px', textTransform: 'uppercase' }}>{t('breed', 'Breed')}</label>
               <input 
                 type="text" 
                 name="breed"
@@ -316,9 +320,10 @@ const EditAnimal = () => {
               />
             </div>
 
+            {/* Milking Status Toggle - Hidden for Calf and Bull */}
             {!(formData.type === 'Calf' || formData.type === 'Bull') && (
               <div className="animate-fade-in">
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>Milking Status</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>{t('milking_status', 'Milking Status')}</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '16px', gap: '4px' }}>
                   {['Milking', 'Dry'].map((status) => (
                     <button
@@ -337,15 +342,16 @@ const EditAnimal = () => {
                         transition: '0.2s'
                       }}
                     >
-                      {status}
+                      {status === 'Milking' ? t('milking', 'Milking') : t('dry', 'Dry')}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* Health Status Toggle */}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>Animal Status (Health)</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase' }}>{t('animal_status_health', 'Animal Status (Health)')}</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', background: '#F1F5F9', padding: '4px', borderRadius: '16px', gap: '4px' }}>
                 {['Healthy', 'Sick', 'Pregnant'].map((hStatus) => (
                   <button
@@ -364,7 +370,7 @@ const EditAnimal = () => {
                       transition: '0.2s'
                     }}
                   >
-                    {hStatus}
+                    {hStatus === 'Healthy' ? t('healthy', 'Healthy') : (hStatus === 'Sick' ? t('sick_label', 'Sick') : t('pregnant', 'Pregnant'))}
                   </button>
                 ))}
               </div>

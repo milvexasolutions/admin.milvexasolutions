@@ -38,7 +38,7 @@ export default function CorporateWebsite() {
   const [formSubmitted, setFormSubmitted] = React.useState(false);
   const [formLoading, setFormLoading] = React.useState(false);
 
-  // Dynamic CMS Data states (with rich defaults based exactly on the user's screens)
+  // Dynamic CMS Data states (initialized cleanly, preserving defaults for profile and services)
   const [profile, setProfile] = React.useState({
     company_name: 'Milvexa Solutions Pvt. Ltd.',
     tagline: 'Innovative Software & Mobile App Solutions',
@@ -62,37 +62,8 @@ export default function CorporateWebsite() {
     { id: '6', title: 'Custom Software Development', description: 'Tailor-made software architectures built specifically to address the unique bottlenecks of your business model.', icon_name: 'Layers' }
   ]);
 
-  const [projects, setProjects] = React.useState([
-    {
-      id: 'p1',
-      title: 'Cattle Farm Management System',
-      category: 'Web Application & Mobile Sync',
-      technologies: ['React', 'Node.js', 'Supabase', 'Capacitor', 'Chart.js'],
-      short_description: 'Complete enterprise solution for cattle farm management, live health metrics tracking, milk production stats, breeding logs, and financial ledger bookkeeping.',
-      long_description: 'A fully integrated multi-tenant ERP software suite designed for modern dairy farm owners. Tracks daily herd activities, automated calf life-cycle promotion rules, precise milk volume metrics, veterinarian ledger summaries, staff payroll registers, supplier purchase records, and generates balance sheets. Enabled with multi-language i18n support.',
-      image_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/cattel.png',
-      live_url: 'https://www.app.milvexasolutions.in',
-      github_url: '#'
-    },
-    {
-      id: 'p2',
-      title: 'Billing Software & Invoice Desk',
-      category: 'Web Dashboard',
-      technologies: ['React', 'PostgreSQL', 'TailwindCSS', 'PDF Generator'],
-      short_description: 'Smart, robust web billing panels. Tracks transactions, issues PDF invoices instantly, keeps tax summaries, and produces monthly balance records.',
-      long_description: 'High-speed business billing application designed to streamline customer checkouts. Features barcode scanner integration, print receipt configuration, tax ledger reports, custom supplier transactions history, and quick backup logs.',
-      image_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/billing.png',
-      live_url: '#',
-      github_url: '#'
-    }
-  ]);
-
-  const [apks, setApks] = React.useState([
-    { id: 'a1', app_name: 'Cattle Farm App', version: '1.0.0', file_size: '25.4 MB', release_date: '20 May 2026', download_url: 'https://hqnqtefanszrazqowdgx.supabase.co/storage/v1/object/public/milvexa%20-%20cattel%20farm%20managment/milvexa_v1.1.1.apk', icon_type: 'dog' },
-    { id: 'a2', app_name: 'Billing App', version: '2.1.0', file_size: '18.7 MB', release_date: '18 May 2026', download_url: '#', icon_type: 'wallet' },
-    { id: 'a3', app_name: 'Attendance App', version: '1.2.0', file_size: '16.2 MB', release_date: '10 May 2026', download_url: '#', icon_type: 'briefcase' },
-    { id: 'a4', app_name: 'Inventory App', version: '1.0.6', file_size: '22.8 MB', release_date: '05 May 2026', download_url: '#', icon_type: 'package' }
-  ]);
+  const [projects, setProjects] = React.useState([]);
+  const [apks, setApks] = React.useState([]);
 
   // Load dynamic data from Supabase
   React.useEffect(() => {
@@ -102,34 +73,79 @@ export default function CorporateWebsite() {
         const { data: profileData, error: profileErr } = await supabase
           .from('company_profile')
           .select('*')
-          .single();
-        if (profileData && !profileErr) setProfile(profileData);
+          .maybeSingle();
+        if (!profileErr && profileData) {
+          setProfile(profileData);
+        }
 
         // Fetch Services
         const { data: servicesData, error: servicesErr } = await supabase
           .from('corporate_services')
           .select('*')
           .order('created_at', { ascending: true });
-        if (servicesData && servicesData.length > 0 && !servicesErr) setServices(servicesData);
+        if (!servicesErr && servicesData && servicesData.length > 0) {
+          setServices(servicesData);
+        }
 
         // Fetch Projects
         const { data: projectsData, error: projectsErr } = await supabase
           .from('corporate_projects')
           .select('*')
           .order('created_at', { ascending: true });
-        if (projectsData && projectsData.length > 0 && !projectsErr) setProjects(projectsData);
+        if (!projectsErr) {
+          setProjects(projectsData || []);
+        }
 
         // Fetch APKs
         const { data: apksData, error: apksErr } = await supabase
           .from('corporate_apks')
           .select('*')
           .order('created_at', { ascending: true });
-        if (apksData && apksData.length > 0 && !apksErr) setApks(apksData);
+        if (!apksErr) {
+          setApks(apksData || []);
+        }
       } catch (err) {
-        console.warn('Database fetch failed. Using premium mock defaults.', err);
+        console.warn('Database fetch failed.', err);
       }
     }
     fetchDynamicData();
+  }, []);
+
+  // Dynamic Scrollspy to track active section while scrolling
+  React.useEffect(() => {
+    const sections = ['home', 'services', 'projects', 'downloads', 'guides', 'about', 'contact'];
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '-30% 0px -50% 0px',
+      threshold: 0
+    };
+
+    const observerCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    
+    sections.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      sections.forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+    };
   }, []);
 
   const handleContactSubmit = async (e) => {
@@ -757,31 +773,8 @@ export default function CorporateWebsite() {
               <h3 style={{ fontSize: 'clamp(24px, 3.5vw, 38px)', fontWeight: '900', margin: 0 }}>Delivering Intelligent Digital Solutions</h3>
               
               <p style={{ fontSize: '15px', color: colors.textMuted, lineHeight: 1.6, fontWeight: '600', margin: 0 }}>
-                Milvexa Solutions Pvt. Ltd. delivers high-quality software solutions, Android applications, admin systems, and digital business tools designed for modern businesses. We bridge the gap between complex problems and clean, robust technical architectures.
+                {profile.description || "We build powerful Android apps, web applications, admin panels, and business solutions that help enterprises grow and automate their business efficiently."}
               </p>
-
-              <p style={{ fontSize: '15px', color: colors.textMuted, lineHeight: 1.6, fontWeight: '600', margin: 0 }}>
-                Our experienced engineers build systems loaded with security encryption, smooth visual aesthetics, real-time analytics graphs, and fully localized translations to enable business owners to coordinate operations smoothly on their dashboards or smartphones.
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
-                <div style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '50%',
-                  background: 'rgba(16, 185, 129, 0.1)',
-                  color: '#10B981',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Award size={20} />
-                </div>
-                <div>
-                  <h5 style={{ margin: 0, fontSize: '14.5px', fontWeight: '800' }}>ISO 9001:2015 Certified</h5>
-                  <p style={{ margin: 0, fontSize: '12px', color: colors.textMuted, fontWeight: '600' }}>Quality Management Systems Standard</p>
-                </div>
-              </div>
             </div>
 
             {/* Dynamic Counters Grid */}
@@ -831,7 +824,7 @@ export default function CorporateWebsite() {
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '48px' }}>
             <p style={{ fontSize: '12px', fontWeight: '900', color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '1.5px', margin: '0 0 10px' }}>Our Projects</p>
-            <h3 style={{ fontSize: 'clamp(24px, 3.5vw, 38px)', fontWeight: '900', margin: 0 }}>Featured Projects</h3>
+            <h3 style={{ fontSize: 'clamp(24px, 3.5vw, 38px)', fontWeight: '900', margin: 0 }}>Our Projects</h3>
             <div style={{ width: '60px', height: '3px', background: '#3B82F6', margin: '14px auto 0', borderRadius: '10px' }}></div>
           </div>
 
@@ -1004,9 +997,15 @@ export default function CorporateWebsite() {
               >
                 {/* App Main Header Row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  {getApkIconComponent(app.icon_type)}
+                  {app.icon_type.startsWith('http') ? (
+                    <img src={app.icon_type} alt="logo" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '14px' }} />
+                  ) : (
+                    getApkIconComponent(app.icon_type)
+                  )}
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '900' }}>{app.app_name}</h4>
+                    <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '900' }}>
+                      {app.app_name.toUpperCase().includes('MILVEXA') ? profile.company_name : app.app_name}
+                    </h4>
                     <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
                       <span style={{ fontSize: '11px', fontWeight: '800', color: colors.textMuted }}>v{app.version}</span>
                       <span style={{ fontSize: '11px', color: colors.border }}>|</span>

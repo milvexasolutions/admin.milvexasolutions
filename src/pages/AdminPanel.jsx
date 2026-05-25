@@ -2520,7 +2520,7 @@ const AdminPanel = () => {
                     </div>
                   </div>
                   <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: '#0F172A' }}>100%</h3>
-                  <p style={{ margin: '4px 0 10px', fontSize: '11px', color: '#059669', fontWeight: '800' }}>All active devices upgraded to v{updateForm.version || '1.1.0'}</p>
+                  <p style={{ margin: '4px 0 10px', fontSize: '11px', color: '#059669', fontWeight: '800' }}>All active devices upgraded to v{updateForm.version || '1.1.1'}</p>
                   <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{ width: '100%', height: '100%', background: '#10B981', borderRadius: '3px' }}></div>
                   </div>

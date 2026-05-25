@@ -1602,6 +1602,17 @@ const AppContent = () => {
     return () => { document.body.style.overflow = 'auto'; };
   }, [isSidebarOpen]);
 
+  // Dynamically set document title based on subdomain/route
+  React.useEffect(() => {
+    if (isAdminDomain) {
+      document.title = "Milvexa - Admin Panel";
+    } else if (isAppDomain) {
+      document.title = "MILVEXA – Cattle Farm Management";
+    } else {
+      document.title = "Milvexa Solutions Pvt. Ltd.";
+    }
+  }, [isAdminDomain, isAppDomain, location.pathname]);
+
   const APP_VERSION = "v1.1.1"; // Current installed version
 
   // Expose triggers to allow Settings.jsx to initiate a manual update check

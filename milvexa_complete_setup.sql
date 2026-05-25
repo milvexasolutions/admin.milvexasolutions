@@ -325,6 +325,10 @@ CREATE TABLE IF NOT EXISTS public.admin_roles (
     updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ensure username column exists if the table was already created in a previous session
+ALTER TABLE public.admin_roles ADD COLUMN IF NOT EXISTS username TEXT UNIQUE;
+
+
 -- R. SYSTEM UPDATES TABLE (APK & Release notes manager)
 CREATE TABLE IF NOT EXISTS public.system_updates (
     id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

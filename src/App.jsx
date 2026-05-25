@@ -1591,7 +1591,7 @@ const AppContent = () => {
   const { isLargeScreen } = useResponsive();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const isAdminDomain = window.location.hostname.includes('admin.milvexasolutions.in') || window.location.hostname.includes('admin.localhost') || window.location.pathname.startsWith('/admin');
-  const isAppDomain = window.location.hostname.includes('app.milvexasolutions.in') || window.location.hostname.includes('app.localhost') || window.location.pathname.startsWith('/app') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (typeof window !== 'undefined' && !!window.Capacitor);
+  const isAppDomain = (window.location.hostname.includes('app.milvexasolutions.in') || window.location.hostname.includes('app.localhost') || window.location.pathname.startsWith('/app') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (typeof window !== 'undefined' && !!window.Capacitor)) && !window.location.hostname.includes('www.milvexasolutions.in') && window.location.hostname !== 'milvexasolutions.in';
 
   React.useEffect(() => {
     if (isSidebarOpen) {

@@ -41,7 +41,7 @@
         const hostname = window.location.hostname;
         const pathname = window.location.pathname;
         const isAdmin = hostname.includes('admin.milvexasolutions.in') || hostname.includes('admin.localhost') || pathname.startsWith('/admin');
-        const isApp = hostname.includes('app.milvexasolutions.in') || hostname.includes('app.localhost') || pathname.startsWith('/app') || hostname === 'localhost' || hostname === '127.0.0.1' || !!window.Capacitor;
+        const isApp = (hostname.includes('app.milvexasolutions.in') || hostname.includes('app.localhost') || pathname.startsWith('/app') || hostname === 'localhost' || hostname === '127.0.0.1' || !!window.Capacitor) && !hostname.includes('www.milvexasolutions.in') && hostname !== 'milvexasolutions.in';
 
         if (!isAdmin && !isApp) {
           // Immediately hide splash screen on the corporate website

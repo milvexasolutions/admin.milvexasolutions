@@ -120,7 +120,7 @@ const AdminPanel = () => {
   const [addingStaff, setAddingStaff] = useState(false);
   const [loginStep, setLoginStep] = useState(1);
   const [isSetupMode, setIsSetupMode] = useState(false);
-  
+
   // Custom secure login verification OTP states
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [adminOtpInput, setAdminOtpInput] = useState('');
@@ -148,18 +148,19 @@ const AdminPanel = () => {
     contact_phone: '+91 96247 45944',
     address: 'Anand, Gujarat, India'
   });
-  
+
   const [corpServices, setCorpServices] = useState([]);
   const [corpProjects, setCorpProjects] = useState([]);
   const [corpApks, setCorpApks] = useState([]);
   const [corpLeads, setCorpLeads] = useState([]);
-  
+
   // CMS CRUD Form states
   const [newService, setNewService] = useState({ title: '', description: '', icon_name: 'Smartphone' });
   const [newProject, setNewProject] = useState({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
   const [newApk, setNewApk] = useState({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
   const [apkUploadLoading, setApkUploadLoading] = useState(false);
   const [logoUploadLoading, setLogoUploadLoading] = useState(false);
+  const [projectImageUploadLoading, setProjectImageUploadLoading] = useState(false);
 
   const loadCorporateCMSData = async () => {
     try {
@@ -254,7 +255,7 @@ const AdminPanel = () => {
         .from('company_profile')
         .update(profileForm)
         .eq('id', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22');
-      
+
       if (error) throw error;
       setSaveMsg('Corporate Profile Saved Successfully!');
       setTimeout(() => setSaveMsg(''), 3500);
@@ -303,7 +304,7 @@ const AdminPanel = () => {
     if (!newProject.title || !newProject.short_description) return;
     const projectData = {
       ...newProject,
-      technologies: typeof newProject.technologies === 'string' 
+      technologies: typeof newProject.technologies === 'string'
         ? newProject.technologies.split(',').map(t => t.trim()).filter(Boolean)
         : newProject.technologies
     };
@@ -361,13 +362,13 @@ const AdminPanel = () => {
 
       const publicUrl = publicUrlData?.publicUrl || '';
       const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
-      
+
       setNewApk(prev => ({
         ...prev,
         download_url: publicUrl,
         file_size: `${sizeInMB} MB`
       }));
-      
+
       alert("APK File uploaded successfully!");
     } catch (err) {
       console.error("APK upload failed:", err);
@@ -400,18 +401,56 @@ const AdminPanel = () => {
         .getPublicUrl(fileName);
 
       const publicUrl = publicUrlData?.publicUrl || '';
-      
+
       setNewApk(prev => ({
         ...prev,
         icon_type: publicUrl
       }));
-      
+
       alert("Logo image uploaded successfully!");
     } catch (err) {
       console.error("Logo upload failed:", err);
       alert("Logo upload failed: " + (err.message || err));
     } finally {
       setLogoUploadLoading(false);
+    }
+  };
+
+  const handleProjectImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert("Please upload a valid image file (JPG, JPEG, PNG).");
+      return;
+    }
+
+    setProjectImageUploadLoading(true);
+    try {
+      const fileName = `project-mockups/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('apks')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('apks')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData?.publicUrl || '';
+
+      setNewProject(prev => ({
+        ...prev,
+        image_url: publicUrl
+      }));
+
+      alert("Project Mockup image uploaded successfully!");
+    } catch (err) {
+      console.error("Project Mockup upload failed:", err);
+      alert("Project Mockup upload failed: " + (err.message || err));
+    } finally {
+      setProjectImageUploadLoading(false);
     }
   };
 
@@ -490,7 +529,7 @@ const AdminPanel = () => {
   const [uploadingApk, setUploadingApk] = useState(false);
   const [isUpdatePushed, setIsUpdatePushed] = useState(true);
   const [systemMetrics, setSystemMetrics] = useState({ cpu: 34, memory: 62, latency: 140, threatLevel: 'LOW', blockedIPs: 12 });
-  
+
   // Advanced Security States
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
@@ -539,7 +578,7 @@ const AdminPanel = () => {
   const getDeterministicSessionDetails = (p) => {
     const email = p.email || '';
     const name = p.user || 'Unknown Farmer';
-    
+
     // Hash function to make it deterministic
     let hash = 0;
     for (let i = 0; i < email.length; i++) {
@@ -654,9 +693,9 @@ const AdminPanel = () => {
         const start = Date.now();
         await supabase.from('profiles').select('id').limit(1);
         const lat = Date.now() - start;
-        
+
         const isThreat = Math.random() > 0.90;
-        
+
         setSystemMetrics(prev => ({
           cpu: Math.floor(Math.random() * 30) + 20,
           memory: Math.floor(Math.random() * 15) + 60,
@@ -691,7 +730,7 @@ const AdminPanel = () => {
                 announceImage = parsed.image || '';
                 isMaint = parsed.is_maintenance || false;
                 maintMsg = parsed.maintenance_message || 'System is currently under maintenance. We will be back online soon.';
-              } catch (e) {}
+              } catch (e) { }
             }
 
             setUpdateForm({
@@ -741,7 +780,7 @@ const AdminPanel = () => {
 
       // 2. Upload the new APK
       const fileName = `milvexa-release-${updateForm.version.replace(/\./g, '_')}-${Date.now()}.apk`;
-      
+
       const { data, error } = await supabase.storage
         .from('apks')
         .upload(fileName, file, { cacheControl: '3600', upsert: true });
@@ -750,7 +789,7 @@ const AdminPanel = () => {
 
       // Get public URL
       const { data: publicData } = supabase.storage.from('apks').getPublicUrl(fileName);
-      
+
       setUpdateForm(prev => ({ ...prev, downloadLink: publicData.publicUrl }));
       setIsUpdatePushed(false); // Enable the Deploy button since new APK is uploaded
       setSaveMsg("APK Uploaded successfully! Public link generated.");
@@ -809,7 +848,7 @@ const AdminPanel = () => {
 
     try {
       const fileName = `announcements/img_${Date.now()}.${file.name.split('.').pop()}`;
-      
+
       const { data, error } = await supabase.storage
         .from('apks')
         .upload(fileName, file, { cacheControl: '3600', upsert: true });
@@ -818,7 +857,7 @@ const AdminPanel = () => {
 
       // Get public URL
       const { data: publicData } = supabase.storage.from('apks').getPublicUrl(fileName);
-      
+
       setUpdateForm(prev => ({ ...prev, announcementImage: publicData.publicUrl }));
       setSaveMsg("Broadcast Image uploaded successfully!");
       setTimeout(() => setSaveMsg(''), 3000);
@@ -855,7 +894,7 @@ const AdminPanel = () => {
       if (error) throw error;
       setSaveMsg('System Update broadcasted successfully to all devices!');
       setTimeout(() => setSaveMsg(''), 3000);
-      
+
       // Also cache to localStorage as backup
       localStorage.setItem('milvexa_system_updates', JSON.stringify(updateForm));
       setIsUpdatePushed(true); // Successfully deployed and disabled!
@@ -900,10 +939,10 @@ const AdminPanel = () => {
   const handleSaveMaintenance = async (maintState, maintMsgText) => {
     setSaveErr('');
     try {
-      const updatedForm = { 
-        ...updateForm, 
-        isMaintenance: maintState, 
-        maintenanceMessage: maintMsgText 
+      const updatedForm = {
+        ...updateForm,
+        isMaintenance: maintState,
+        maintenanceMessage: maintMsgText
       };
       setUpdateForm(updatedForm);
       const { error } = await supabase
@@ -1031,7 +1070,7 @@ const AdminPanel = () => {
           .select('*')
           .eq('username', safeInput)
           .maybeSingle();
-        
+
         roleData = data;
         roleErr = error;
 
@@ -1040,7 +1079,7 @@ const AdminPanel = () => {
           const { data: allRoles } = await supabase
             .from('admin_roles')
             .select('*');
-          
+
           if (allRoles) {
             roleData = allRoles.find(r => {
               const prefix = r.email.split('@')[0].toLowerCase();
@@ -1049,18 +1088,18 @@ const AdminPanel = () => {
           }
         }
       }
-        
+
       if (!roleData) {
         throw new Error("Account not authorized. Please contact Super Admin.");
       }
-      
+
       if (roleData.status === 'blocked') {
         throw new Error("Access Blocked! Contact Super Admin.");
       }
 
       // Crucial: Set state to the retrieved actual email so downstream processes (like OTP send) work perfectly
       setAdminEmail(roleData.email);
-      
+
       if (!roleData.password || roleData.password.trim() === '') {
         setIsSetupMode(true);
       } else {
@@ -1085,13 +1124,13 @@ const AdminPanel = () => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedOtp(otp);
     setOtpCountdown(60);
-    
+
     // Log to console for developer sandbox testing
     console.log(`%c🔐 [MILVEXA SECURITY] Admin Login Verification OTP Code for ${email}: ${otp}`, "color: #10B981; font-weight: bold; font-size: 14px;");
-    
+
     // Attempt real email send via Supabase Auth OTP (will use project SMTP)
     try {
-      await supabase.auth.signInWithOtp({ 
+      await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: true
@@ -1105,7 +1144,7 @@ const AdminPanel = () => {
   const handleFinalLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
-    
+
     const blockKey = 'milvexa_login_block';
     const attemptsKey = 'milvexa_login_attempts';
 
@@ -1116,14 +1155,14 @@ const AdminPanel = () => {
 
       if (isSetupMode) {
         if (!safePass || safePass.length < 6) {
-           throw new Error("Password must be at least 6 characters.");
+          throw new Error("Password must be at least 6 characters.");
         }
         const { error: updateErr } = await supabase
           .from('admin_roles')
           .update({ password: safePass })
           .eq('email', safeEmail);
         if (updateErr) throw new Error("Failed to set new password.");
-        
+
         await triggerOtpSend(safeEmail);
         setLoginStep(3);
       } else {
@@ -1134,7 +1173,7 @@ const AdminPanel = () => {
           .single();
         if (roleErr || !roleData) throw new Error("Verification failed.");
         if (roleData.password !== safePass) throw new Error("Incorrect Password!");
-        
+
         await triggerOtpSend(safeEmail);
         setLoginStep(3);
       }
@@ -1154,7 +1193,7 @@ const AdminPanel = () => {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setLoginError('');
-    
+
     const blockKey = 'milvexa_login_block';
     const attemptsKey = 'milvexa_login_attempts';
 
@@ -1162,9 +1201,9 @@ const AdminPanel = () => {
     try {
       const cleanOtpInput = adminOtpInput.trim();
       const safeEmail = sanitizeInput(adminEmail);
-      
+
       let isVerified = false;
-      
+
       // 1. Check against client-side generated sandbox OTP
       if (cleanOtpInput === generatedOtp) {
         isVerified = true;
@@ -1177,7 +1216,7 @@ const AdminPanel = () => {
             token: cleanOtpInput,
             type: 'email'
           });
-          
+
           if (!verifyRes.error && (verifyRes.data?.user || verifyRes.data?.session)) {
             isVerified = true;
           } else {
@@ -1195,15 +1234,15 @@ const AdminPanel = () => {
           console.warn("Supabase Auth verifyOtp exception:", supaErr);
         }
       }
-      
+
       if (!isVerified) {
         throw new Error("Incorrect OTP verification code!");
       }
-      
+
       // Reset attempts on success
       localStorage.removeItem('milvexa_login_attempts');
       localStorage.removeItem('milvexa_login_block');
-      
+
       sessionStorage.setItem('admin_authenticated', 'true');
       setAuthenticated(true);
     } catch (err) {
@@ -1266,9 +1305,9 @@ const AdminPanel = () => {
       console.error(err);
     }
   };
-  
+
   const handleDeleteStaff = async (id) => {
-    if(!window.confirm("Are you sure you want to permanently revoke this staff's access?")) return;
+    if (!window.confirm("Are you sure you want to permanently revoke this staff's access?")) return;
     try {
       const { error } = await supabase.from('admin_roles').delete().eq('id', id);
       if (error) throw error;
@@ -1357,10 +1396,10 @@ const AdminPanel = () => {
     const phone = (f.phone || '').toLowerCase();
     const email = (f.email || '').toLowerCase();
     const farm = (f.farm_name || '').toLowerCase();
-    const matchesSearch = name.includes(searchQuery.toLowerCase()) || 
-                          phone.includes(searchQuery.toLowerCase()) || 
-                          email.includes(searchQuery.toLowerCase()) || 
-                          farm.includes(searchQuery.toLowerCase());
+    const matchesSearch = name.includes(searchQuery.toLowerCase()) ||
+      phone.includes(searchQuery.toLowerCase()) ||
+      email.includes(searchQuery.toLowerCase()) ||
+      farm.includes(searchQuery.toLowerCase());
 
     if (statusFilter === 'ACTIVE') return matchesSearch && !f.is_blocked;
     if (statusFilter === 'BLOCKED') return matchesSearch && f.is_blocked;
@@ -1409,9 +1448,9 @@ const AdminPanel = () => {
         <ShieldAlert size={80} style={{ marginBottom: '24px', animation: 'pulse 2s infinite' }} />
         <h1 style={{ fontSize: '32px', fontWeight: '900', margin: '0 0 16px 0', letterSpacing: '1px', textAlign: 'center' }}>SYSTEM IN EMERGENCY LOCKDOWN</h1>
         <p style={{ fontSize: '16px', fontWeight: '600', color: '#FECACA', maxWidth: '500px', textAlign: 'center', marginBottom: '32px' }}>
-          Layer 7 Firewall has been triggered. All global access to the Milvexa infrastructure is temporarily frozen to prevent data exfiltration. 
+          Layer 7 Firewall has been triggered. All global access to the Milvexa infrastructure is temporarily frozen to prevent data exfiltration.
         </p>
-        <button 
+        <button
           onClick={() => { localStorage.removeItem('milvexa_system_lockdown'); setLockdownActive(false); }}
           style={{ background: 'white', color: '#991B1B', padding: '16px 32px', borderRadius: '12px', fontSize: '14px', fontWeight: '900', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
         >
@@ -1617,12 +1656,12 @@ const AdminPanel = () => {
             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center' }}>
               <button
                 type="button"
-                onClick={() => { 
-                  setLoginStep(1); 
-                  setAdminPassword(''); 
+                onClick={() => {
+                  setLoginStep(1);
+                  setAdminPassword('');
                   setAdminOtpInput('');
-                  setIsSetupMode(false); 
-                  setLoginError(''); 
+                  setIsSetupMode(false);
+                  setLoginError('');
                 }}
                 style={{
                   background: 'none',
@@ -1828,13 +1867,13 @@ const AdminPanel = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#0F172A' }}>
               {activeTab === 'dashboard' ? 'Platform Command Center' :
-               activeTab === 'farmers' ? 'Farmer Accounts Ledger' :
-               activeTab === 'corporate' ? 'Corporate Website CMS Desk' :
-               activeTab === 'roles' ? 'Staff Role Management' :
-               activeTab === 'security' ? 'Cybersecurity & Firewall Center' :
-               activeTab === 'updates' ? 'System Broadcast & App Updates' :
-               activeTab === 'tickets' ? 'Helpdesk Tickets Board' :
-               'Platform Configuration'}
+                activeTab === 'farmers' ? 'Farmer Accounts Ledger' :
+                  activeTab === 'corporate' ? 'Corporate Website CMS Desk' :
+                    activeTab === 'roles' ? 'Staff Role Management' :
+                      activeTab === 'security' ? 'Cybersecurity & Firewall Center' :
+                        activeTab === 'updates' ? 'System Broadcast & App Updates' :
+                          activeTab === 'tickets' ? 'Helpdesk Tickets Board' :
+                            'Platform Configuration'}
             </h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -2104,7 +2143,7 @@ const AdminPanel = () => {
                         backgroundSize: '15px 15px',
                         opacity: 0.4
                       }} />
-                      
+
                       <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, zIndex: 5 }}>
                         {/* Central Cloud Server Node */}
                         <circle cx="50%" cy="50%" r="20" fill="rgba(37, 99, 235, 0.2)" stroke="#3B82F6" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 8px #3B82F6)' }} />
@@ -2115,7 +2154,7 @@ const AdminPanel = () => {
                         {activeOnlineList.map((usr, idx) => {
                           const w = 300; // Simulated width for SVG calc
                           const h = 180;
-                          
+
                           // Position coordinates mapped deterministically
                           const nodeX = `${usr.x || 60}%`;
                           const nodeY = `${usr.y || 80}%`;
@@ -2546,11 +2585,11 @@ const AdminPanel = () => {
                       </div>
                       <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
                         <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '800', textTransform: 'uppercase' }}>Account Status</span>
-                        <h4 style={{ 
-                          margin: '4px 0 0', 
-                          fontSize: '13px', 
-                          fontWeight: '900', 
-                          color: selectedFarmer.is_blocked ? '#DC2626' : '#059669' 
+                        <h4 style={{
+                          margin: '4px 0 0',
+                          fontSize: '13px',
+                          fontWeight: '900',
+                          color: selectedFarmer.is_blocked ? '#DC2626' : '#059669'
                         }}>
                           {selectedFarmer.is_blocked ? '🔴 BLOCKED' : '🟢 ACTIVE'}
                         </h4>
@@ -2811,7 +2850,7 @@ const AdminPanel = () => {
           {/* ────────────────── 4.5. SECURITY & FIREWALL TAB ────────────────── */}
           {activeTab === 'security' && (
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', alignItems: 'start' }}>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                   <div style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9' }}>
@@ -2856,7 +2895,7 @@ const AdminPanel = () => {
                       <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Automatically detected anomalies and unauthorized access attempts</span>
                     </div>
                   </div>
-                  
+
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
                       <tr>
@@ -2894,7 +2933,7 @@ const AdminPanel = () => {
                           <h4 style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>{rule.name}</h4>
                           <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>{rule.desc}</span>
                         </div>
-                        <div 
+                        <div
                           onClick={() => setFirewallRules(prev => ({ ...prev, [rule.id]: !prev[rule.id] }))}
                           style={{ width: '44px', height: '24px', background: firewallRules[rule.id] ? '#10B981' : '#CBD5E1', borderRadius: '12px', position: 'relative', cursor: 'pointer', transition: 'all 0.2s' }}
                         >
@@ -2907,15 +2946,15 @@ const AdminPanel = () => {
 
                 <div style={{ background: lockdownActive ? '#991B1B' : '#FEF2F2', border: `1px solid ${lockdownActive ? '#7F1D1D' : '#FCA5A5'}`, borderRadius: '24px', padding: '24px', color: lockdownActive ? 'white' : '#991B1B', transition: 'all 0.3s' }}>
                   <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {lockdownActive ? <ShieldAlert size={18} /> : null} 
+                    {lockdownActive ? <ShieldAlert size={18} /> : null}
                     {lockdownActive ? 'SYSTEM IN LOCKDOWN' : 'Emergency Lockdown'}
                   </h4>
                   <p style={{ margin: '0 0 16px 0', fontSize: '12px', lineHeight: 1.6, fontWeight: '600', color: lockdownActive ? '#FECACA' : '#991B1B' }}>
-                    {lockdownActive 
-                      ? 'Global admin access is completely frozen. Only the Super Admin can unlock the system.' 
+                    {lockdownActive
+                      ? 'Global admin access is completely frozen. Only the Super Admin can unlock the system.'
                       : 'If you suspect a severe breach, activate lockdown mode to instantly freeze all Admin access globally.'}
                   </p>
-                  <button 
+                  <button
                     onClick={() => {
                       const newState = !lockdownActive;
                       setLockdownActive(newState);
@@ -2937,7 +2976,7 @@ const AdminPanel = () => {
           {/* ────────────────── 5. BROADCAST & UPDATES TAB ────────────────── */}
           {activeTab === 'updates' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              
+
               {/* Premium Dev Console Analytics Row */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
                 {/* Adoption Metrics */}
@@ -2994,7 +3033,7 @@ const AdminPanel = () => {
 
               {/* Form columns */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
-                
+
                 {/* Left Column: App Version Update */}
                 <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                   <div style={{ padding: '20px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(to right, #ffffff, #F8FAFC)' }}>
@@ -3006,7 +3045,7 @@ const AdminPanel = () => {
                       <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Force mobile clients to download latest version</span>
                     </div>
                   </div>
-                  
+
                   <form onSubmit={handleSaveUpdates} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
@@ -3021,7 +3060,7 @@ const AdminPanel = () => {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Upload New APK File OR Paste Link</label>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
@@ -3032,30 +3071,30 @@ const AdminPanel = () => {
                       </div>
                       <input type="url" value={updateForm.downloadLink} onChange={e => { setUpdateForm({ ...updateForm, downloadLink: e.target.value }); setIsUpdatePushed(false); }} placeholder="Or paste external link (e.g., Google Drive)..." style={{ width: '100%', padding: '12px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', color: '#2563EB', outline: 'none' }} required />
                     </div>
-                    
+
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Release Notes / What's New</label>
                       <textarea value={updateForm.releaseNotes} onChange={e => { setUpdateForm({ ...updateForm, releaseNotes: e.target.value }); setIsUpdatePushed(false); }} placeholder="Describe what changed..." rows="3" style={{ width: '100%', padding: '14px 16px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', color: '#0F172A', outline: 'none', resize: 'vertical' }} />
                     </div>
 
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       disabled={isUpdatePushed || uploadingApk}
-                      style={{ 
-                        width: '100%', 
-                        padding: '16px', 
-                        background: (isUpdatePushed || uploadingApk) ? '#94A3B8' : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '14px', 
-                        fontSize: '13px', 
-                        fontWeight: '900', 
-                        cursor: (isUpdatePushed || uploadingApk) ? 'not-allowed' : 'pointer', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        gap: '8px', 
-                        marginTop: '10px', 
+                      style={{
+                        width: '100%',
+                        padding: '16px',
+                        background: (isUpdatePushed || uploadingApk) ? '#94A3B8' : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '14px',
+                        fontSize: '13px',
+                        fontWeight: '900',
+                        cursor: (isUpdatePushed || uploadingApk) ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        marginTop: '10px',
                         boxShadow: (isUpdatePushed || uploadingApk) ? 'none' : '0 10px 20px rgba(37, 99, 235, 0.2)',
                         transition: 'all 0.2s'
                       }}
@@ -3080,7 +3119,7 @@ const AdminPanel = () => {
                       <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Broadcast a live banner & popup to all mobile apps</span>
                     </div>
                   </div>
-                  
+
                   <form onSubmit={handleSaveUpdates} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Live Broadcast Message</label>
@@ -3104,7 +3143,7 @@ const AdminPanel = () => {
                         <button type="button" onClick={() => setUpdateForm({ ...updateForm, announcementImage: '' })} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>✕</button>
                       </div>
                     )}
-                    
+
                     <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                       <AlertCircle size={20} color="#D97706" style={{ flexShrink: 0, marginTop: '2px' }} />
                       <p style={{ margin: 0, fontSize: '12px', color: '#92400E', fontWeight: '600', lineHeight: 1.5 }}>
@@ -3122,7 +3161,7 @@ const AdminPanel = () => {
 
               {/* Full Width Row: Announcement Management & Maintenance Settings */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
-                
+
                 {/* Panel 1: Announcement Status & Close Option */}
                 <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                   <div style={{ padding: '20px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(to right, #ffffff, #F8FAFC)' }}>
@@ -3134,7 +3173,7 @@ const AdminPanel = () => {
                       <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Review and clear active global notifications</span>
                     </div>
                   </div>
-                  
+
                   <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '16px', border: '1px solid #E2E8F0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -3143,7 +3182,7 @@ const AdminPanel = () => {
                           Status: {updateForm.announcement || updateForm.announcementImage ? 'Active Announcement Live' : 'No Announcement Broadcasted'}
                         </span>
                       </div>
-                      
+
                       {updateForm.announcement ? (
                         <p style={{ margin: 0, fontSize: '13px', color: '#334155', fontWeight: '700', lineHeight: '1.6', background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
                           "{updateForm.announcement}"
@@ -3161,23 +3200,23 @@ const AdminPanel = () => {
                       )}
                     </div>
 
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handleClearAnnouncement}
                       disabled={!updateForm.announcement && !updateForm.announcementImage}
-                      style={{ 
-                        width: '100%', 
-                        padding: '14px', 
-                        background: (updateForm.announcement || updateForm.announcementImage) ? '#EF4444' : '#F1F5F9', 
-                        color: (updateForm.announcement || updateForm.announcementImage) ? 'white' : '#94A3B8', 
-                        border: 'none', 
-                        borderRadius: '12px', 
-                        fontSize: '13px', 
-                        fontWeight: '900', 
-                        cursor: (updateForm.announcement || updateForm.announcementImage) ? 'pointer' : 'not-allowed', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
+                      style={{
+                        width: '100%',
+                        padding: '14px',
+                        background: (updateForm.announcement || updateForm.announcementImage) ? '#EF4444' : '#F1F5F9',
+                        color: (updateForm.announcement || updateForm.announcementImage) ? 'white' : '#94A3B8',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '13px',
+                        fontWeight: '900',
+                        cursor: (updateForm.announcement || updateForm.announcementImage) ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '8px',
                         transition: 'all 0.2s',
                         boxShadow: (updateForm.announcement || updateForm.announcementImage) ? '0 8px 16px rgba(239, 68, 68, 0.15)' : 'none'
@@ -3199,23 +3238,23 @@ const AdminPanel = () => {
                       <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Lock client applications during scheduled maintenance</span>
                     </div>
                   </div>
-                  
+
                   <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    
+
                     {/* Toggle Selector */}
                     <div style={{ display: 'flex', gap: '12px' }}>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => handleSaveMaintenance(true, updateForm.maintenanceMessage)}
-                        style={{ 
-                          flex: 1, 
-                          padding: '16px 12px', 
-                          background: updateForm.isMaintenance ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)' : '#F8FAFC', 
-                          color: updateForm.isMaintenance ? 'white' : '#64748B', 
-                          border: `1.5px solid ${updateForm.isMaintenance ? 'transparent' : '#E2E8F0'}`, 
-                          borderRadius: '16px', 
-                          fontSize: '13px', 
-                          fontWeight: '900', 
+                        style={{
+                          flex: 1,
+                          padding: '16px 12px',
+                          background: updateForm.isMaintenance ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)' : '#F8FAFC',
+                          color: updateForm.isMaintenance ? 'white' : '#64748B',
+                          border: `1.5px solid ${updateForm.isMaintenance ? 'transparent' : '#E2E8F0'}`,
+                          borderRadius: '16px',
+                          fontSize: '13px',
+                          fontWeight: '900',
                           cursor: 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
@@ -3229,18 +3268,18 @@ const AdminPanel = () => {
                         <span>ENABLE LOCKDOWN</span>
                       </button>
 
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => handleSaveMaintenance(false, updateForm.maintenanceMessage)}
-                        style={{ 
-                          flex: 1, 
-                          padding: '16px 12px', 
-                          background: !updateForm.isMaintenance ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : '#F8FAFC', 
-                          color: !updateForm.isMaintenance ? 'white' : '#64748B', 
-                          border: `1.5px solid ${!updateForm.isMaintenance ? 'transparent' : '#E2E8F0'}`, 
-                          borderRadius: '16px', 
-                          fontSize: '13px', 
-                          fontWeight: '900', 
+                        style={{
+                          flex: 1,
+                          padding: '16px 12px',
+                          background: !updateForm.isMaintenance ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : '#F8FAFC',
+                          color: !updateForm.isMaintenance ? 'white' : '#64748B',
+                          border: `1.5px solid ${!updateForm.isMaintenance ? 'transparent' : '#E2E8F0'}`,
+                          borderRadius: '16px',
+                          fontSize: '13px',
+                          fontWeight: '900',
                           cursor: 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
@@ -3266,27 +3305,27 @@ const AdminPanel = () => {
                     {/* Custom Maintenance Message Text Area */}
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Custom Maintenance Message</label>
-                      <textarea 
-                        value={updateForm.maintenanceMessage} 
-                        onChange={e => setUpdateForm({ ...updateForm, maintenanceMessage: e.target.value })} 
-                        placeholder="Explain scheduled maintenance timings..." 
-                        rows="2" 
-                        style={{ width: '100%', padding: '12px 14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', color: '#0F172A', outline: 'none', resize: 'vertical' }} 
+                      <textarea
+                        value={updateForm.maintenanceMessage}
+                        onChange={e => setUpdateForm({ ...updateForm, maintenanceMessage: e.target.value })}
+                        placeholder="Explain scheduled maintenance timings..."
+                        rows="2"
+                        style={{ width: '100%', padding: '12px 14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', color: '#0F172A', outline: 'none', resize: 'vertical' }}
                       />
                     </div>
 
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => handleSaveMaintenance(updateForm.isMaintenance, updateForm.maintenanceMessage)}
-                      style={{ 
-                        width: '100%', 
-                        padding: '12px', 
-                        background: '#0F172A', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '12px', 
-                        fontSize: '12px', 
-                        fontWeight: '800', 
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        background: '#0F172A',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '800',
                         cursor: 'pointer',
                         transition: 'all 0.2s'
                       }}
@@ -3578,6 +3617,30 @@ const AdminPanel = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Mockup/Image URL</label>
                         <input type="text" value={newProject.image_url} onChange={e => setNewProject({ ...newProject, image_url: e.target.value })} placeholder="https://..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} />
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '700', color: '#94A3B8' }}>OR</span>
+                          <label style={{
+                            padding: '8px 16px',
+                            background: '#F1F5F9',
+                            border: '1px dashed #CBD5E1',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            color: '#475569',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            alignSelf: 'flex-start'
+                          }}>
+                            {projectImageUploadLoading ? 'Uploading...' : 'Upload Mockup Image'}
+                            <input type="file" accept="image/*" onChange={handleProjectImageUpload} style={{ display: 'none' }} disabled={projectImageUploadLoading} />
+                          </label>
+                          {newProject.image_url && (
+                            <span style={{ fontSize: '11px', color: '#10B981', fontWeight: '700' }}>✓ Image Ready</span>
+                          )}
+                        </div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -3638,7 +3701,7 @@ const AdminPanel = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Downloadable Binary Link (APK)</label>
                         <input type="text" value={newApk.download_url} onChange={e => setNewApk({ ...newApk, download_url: e.target.value })} placeholder="https://..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} required />
-                        
+
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
                           <span style={{ fontSize: '11px', fontWeight: '700', color: '#94A3B8' }}>OR</span>
                           <label style={{
@@ -3682,7 +3745,7 @@ const AdminPanel = () => {
                             <input type="file" accept="image/jpeg,image/png,image/jpg" onChange={handleLogoFileUpload} style={{ display: 'none' }} disabled={logoUploadLoading} />
                           </label>
                         </div>
-                        
+
                         {newApk.icon_type.startsWith('http') && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', padding: '8px 12px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                             <img src={newApk.icon_type} alt="Preview" style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover' }} />
@@ -3751,8 +3814,8 @@ const AdminPanel = () => {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {corpLeads.map(lead => (
-                        <div 
-                          key={lead.id} 
+                        <div
+                          key={lead.id}
                           style={{
                             padding: '24px',
                             border: `1.5px solid ${lead.is_read ? '#F1F5F9' : '#DBEAFE'}`,

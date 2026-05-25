@@ -8,7 +8,7 @@ import {
   Copy, BarChart2, Dog, Milk, Package, MessageSquare,
   Activity, AlertCircle, Heart, IndianRupee, TrendingUp,
   Clock, ExternalLink, Check, Trash2, ShieldAlert, ShieldCheck,
-  Megaphone, Smartphone, Radio, UploadCloud, Globe
+  Megaphone, Smartphone, Radio, UploadCloud, Globe, Pen
 } from 'lucide-react';
 
 const ADMIN_CODE_KEY = 'milvexa_admin_code';
@@ -153,14 +153,23 @@ const AdminPanel = () => {
   const [corpProjects, setCorpProjects] = useState([]);
   const [corpApks, setCorpApks] = useState([]);
   const [corpLeads, setCorpLeads] = useState([]);
+  const [corpGuides, setCorpGuides] = useState([]);
 
   // CMS CRUD Form states
   const [newService, setNewService] = useState({ title: '', description: '', icon_name: 'Smartphone' });
   const [newProject, setNewProject] = useState({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
   const [newApk, setNewApk] = useState({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+  const [newGuide, setNewGuide] = useState({ title: '', description: '', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' });
+  
   const [apkUploadLoading, setApkUploadLoading] = useState(false);
   const [logoUploadLoading, setLogoUploadLoading] = useState(false);
   const [projectImageUploadLoading, setProjectImageUploadLoading] = useState(false);
+  const [guidePdfUploadLoading, setGuidePdfUploadLoading] = useState(false);
+  
+  const [editingServiceId, setEditingServiceId] = useState(null);
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editingApkId, setEditingApkId] = useState(null);
+  const [editingGuideId, setEditingGuideId] = useState(null);
 
   const loadCorporateCMSData = async () => {
     try {
@@ -243,6 +252,19 @@ const AdminPanel = () => {
         const savedLeads = localStorage.getItem('contact_leads') || '[]';
         setCorpLeads(JSON.parse(savedLeads));
       }
+
+      // 6. Fetch Guides & Manuals
+      const { data: gds, error: gdsErr } = await supabase.from('corporate_guides').select('*').order('created_at', { ascending: true });
+      if (gds && !gdsErr) {
+        setCorpGuides(gds);
+      } else {
+        const savedGuides = localStorage.getItem('milvexa_corp_guides') || JSON.stringify([
+          { id: 'g1', title: 'Farmer App Initial Setup Guide', description: 'Step-by-step instructions to download the Cattle Farm App, register, connect your dairy society ID, and configure notifications.', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' },
+          { id: 'g2', title: 'Automated Calf Lifecycle Promotion rules', description: 'Understand growth thresholds for heifers, female calves, bull promotion rules, and how local data models coordinate state.', category: 'Herd Science', read_time: '8 min read', pdf_url: '', external_url: '' },
+          { id: 'g3', title: 'Dairy Society Milk Billing Ledger API', description: 'Developer reference detailing standard price rates structures, SNF parameters, fat content calculation queries formulas.', category: 'API Integration', read_time: '12 min read', pdf_url: '', external_url: '' }
+        ]);
+        setCorpGuides(JSON.parse(savedGuides));
+      }
     } catch (e) {
       console.warn('CMS Loader error. Utilizing fallback browser storage.', e);
     }
@@ -284,6 +306,27 @@ const AdminPanel = () => {
     }
   };
 
+  const handleUpdateCorpService = async (e) => {
+    e.preventDefault();
+    if (!newService.title || !newService.description) return;
+    try {
+      const { error } = await supabase
+        .from('corporate_services')
+        .update(newService)
+        .eq('id', editingServiceId);
+      if (error) throw error;
+      setNewService({ title: '', description: '', icon_name: 'Smartphone' });
+      setEditingServiceId(null);
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpServices.map(s => s.id === editingServiceId ? { ...newService, id: editingServiceId } : s);
+      setCorpServices(updated);
+      localStorage.setItem('milvexa_corp_services', JSON.stringify(updated));
+      setNewService({ title: '', description: '', icon_name: 'Smartphone' });
+      setEditingServiceId(null);
+    }
+  };
+
   const handleDeleteCorpService = async (id) => {
     try {
       const { error } = await supabase
@@ -320,6 +363,33 @@ const AdminPanel = () => {
       setCorpProjects(updated);
       localStorage.setItem('milvexa_corp_projects', JSON.stringify(updated));
       setNewProject({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
+    }
+  };
+
+  const handleUpdateCorpProject = async (e) => {
+    e.preventDefault();
+    if (!newProject.title || !newProject.short_description) return;
+    const projectData = {
+      ...newProject,
+      technologies: typeof newProject.technologies === 'string'
+        ? newProject.technologies.split(',').map(t => t.trim()).filter(Boolean)
+        : newProject.technologies
+    };
+    try {
+      const { error } = await supabase
+        .from('corporate_projects')
+        .update(projectData)
+        .eq('id', editingProjectId);
+      if (error) throw error;
+      setNewProject({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
+      setEditingProjectId(null);
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpProjects.map(p => p.id === editingProjectId ? { ...projectData, id: editingProjectId } : p);
+      setCorpProjects(updated);
+      localStorage.setItem('milvexa_corp_projects', JSON.stringify(updated));
+      setNewProject({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
+      setEditingProjectId(null);
     }
   };
 
@@ -476,6 +546,31 @@ const AdminPanel = () => {
     }
   };
 
+  const handleUpdateCorpApk = async (e) => {
+    e.preventDefault();
+    if (!newApk.app_name || !newApk.version || !newApk.download_url) return;
+    const apkData = {
+      ...newApk,
+      release_date: newApk.release_date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+    try {
+      const { error } = await supabase
+        .from('corporate_apks')
+        .update(apkData)
+        .eq('id', editingApkId);
+      if (error) throw error;
+      setNewApk({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+      setEditingApkId(null);
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpApks.map(a => a.id === editingApkId ? { ...apkData, id: editingApkId } : a);
+      setCorpApks(updated);
+      localStorage.setItem('milvexa_corp_apks', JSON.stringify(updated));
+      setNewApk({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+      setEditingApkId(null);
+    }
+  };
+
   const handleDeleteCorpApk = async (id) => {
     try {
       const { error } = await supabase
@@ -488,6 +583,98 @@ const AdminPanel = () => {
       const updated = corpApks.filter(a => a.id !== id);
       setCorpApks(updated);
       localStorage.setItem('milvexa_corp_apks', JSON.stringify(updated));
+    }
+  };
+
+  const handleAddCorpGuide = async (e) => {
+    e.preventDefault();
+    if (!newGuide.title || !newGuide.description) return;
+    try {
+      const { error } = await supabase
+        .from('corporate_guides')
+        .insert([newGuide]);
+      if (error) throw error;
+      setNewGuide({ title: '', description: '', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' });
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = [...corpGuides, { ...newGuide, id: Date.now().toString() }];
+      setCorpGuides(updated);
+      localStorage.setItem('milvexa_corp_guides', JSON.stringify(updated));
+      setNewGuide({ title: '', description: '', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' });
+    }
+  };
+
+  const handleUpdateCorpGuide = async (e) => {
+    e.preventDefault();
+    if (!newGuide.title || !newGuide.description) return;
+    try {
+      const { error } = await supabase
+        .from('corporate_guides')
+        .update(newGuide)
+        .eq('id', editingGuideId);
+      if (error) throw error;
+      setNewGuide({ title: '', description: '', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' });
+      setEditingGuideId(null);
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpGuides.map(g => g.id === editingGuideId ? { ...newGuide, id: editingGuideId } : g);
+      setCorpGuides(updated);
+      localStorage.setItem('milvexa_corp_guides', JSON.stringify(updated));
+      setNewGuide({ title: '', description: '', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' });
+      setEditingGuideId(null);
+    }
+  };
+
+  const handleDeleteCorpGuide = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('corporate_guides')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      loadCorporateCMSData();
+    } catch (e) {
+      const updated = corpGuides.filter(g => g.id !== id);
+      setCorpGuides(updated);
+      localStorage.setItem('milvexa_corp_guides', JSON.stringify(updated));
+    }
+  };
+
+  const handleGuidePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert("Please upload a valid PDF document.");
+      return;
+    }
+
+    setGuidePdfUploadLoading(true);
+    try {
+      const fileName = `guides/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('apks')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('apks')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData?.publicUrl || '';
+
+      setNewGuide(prev => ({
+        ...prev,
+        pdf_url: publicUrl
+      }));
+
+      alert("PDF Manual uploaded successfully!");
+    } catch (err) {
+      console.error("PDF upload failed:", err);
+      alert("PDF upload failed: " + (err.message || err));
+    } finally {
+      setGuidePdfUploadLoading(false);
     }
   };
 
@@ -3429,6 +3616,7 @@ const AdminPanel = () => {
                   { id: 'services', label: 'What We Offer', count: corpServices.length },
                   { id: 'projects', label: 'Featured Projects', count: corpProjects.length },
                   { id: 'apks', label: 'Android Apps (APKs)', count: corpApks.length },
+                  { id: 'guides', label: 'Guides & Manuals', count: corpGuides.length },
                   { id: 'leads', label: 'Leads Inbox', count: corpLeads.filter(l => !l.is_read).length }
                 ].map(sub => (
                   <button
@@ -3539,8 +3727,8 @@ const AdminPanel = () => {
               {corpSubTab === 'services' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
                   <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Add What We Offer Card</h3>
-                    <form onSubmit={handleAddCorpService} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>{editingServiceId ? 'Edit What We Offer Card' : 'Add What We Offer Card'}</h3>
+                    <form onSubmit={editingServiceId ? handleUpdateCorpService : handleAddCorpService} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Service Title</label>
                         <input type="text" value={newService.title} onChange={e => setNewService({ ...newService, title: e.target.value })} placeholder="e.g. Website Development" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
@@ -3560,9 +3748,19 @@ const AdminPanel = () => {
                         <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Service Description</label>
                         <textarea rows="3" value={newService.description} onChange={e => setNewService({ ...newService, description: e.target.value })} placeholder="Briefly detail what clients will receive..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none', resize: 'none' }} required />
                       </div>
-                      <button type="submit" style={{ padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                        <Save size={15} /> Add Service Card
-                      </button>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <button type="submit" style={{ flex: 1, padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Save size={15} /> {editingServiceId ? 'Save Changes' : 'Add Service Card'}
+                        </button>
+                        {editingServiceId && (
+                          <button type="button" onClick={() => {
+                            setEditingServiceId(null);
+                            setNewService({ title: '', description: '', icon_name: 'Smartphone' });
+                          }} style={{ padding: '14px 20px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}>
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </form>
                   </div>
 
@@ -3576,9 +3774,17 @@ const AdminPanel = () => {
                             <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#0F172A' }}>{serv.title}</h4>
                             <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '600' }}>{serv.icon_name} Icon</p>
                           </div>
-                          <button onClick={() => handleDeleteCorpService(serv.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
-                            <Trash2 size={15} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => {
+                              setEditingServiceId(serv.id);
+                              setNewService({ title: serv.title, description: serv.description, icon_name: serv.icon_name });
+                            }} style={{ padding: '8px', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Pen size={15} />
+                            </button>
+                            <button onClick={() => handleDeleteCorpService(serv.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -3590,8 +3796,8 @@ const AdminPanel = () => {
               {corpSubTab === 'projects' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
                   <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Add Featured Project</h3>
-                    <form onSubmit={handleAddCorpProject} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>{editingProjectId ? 'Edit Featured Project' : 'Add Featured Project'}</h3>
+                    <form onSubmit={editingProjectId ? handleUpdateCorpProject : handleAddCorpProject} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Project Title</label>
                         <input type="text" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} placeholder="e.g. Cattle Farm Management" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
@@ -3652,9 +3858,19 @@ const AdminPanel = () => {
                           <input type="text" value={newProject.github_url} onChange={e => setNewProject({ ...newProject, github_url: e.target.value })} placeholder="#" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} />
                         </div>
                       </div>
-                      <button type="submit" style={{ padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                        <Save size={15} /> Add Featured Project
-                      </button>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <button type="submit" style={{ flex: 1, padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Save size={15} /> {editingProjectId ? 'Save Changes' : 'Add Featured Project'}
+                        </button>
+                        {editingProjectId && (
+                          <button type="button" onClick={() => {
+                            setEditingProjectId(null);
+                            setNewProject({ title: '', category: 'Web Application', technologies: '', short_description: '', long_description: '', image_url: '', live_url: '', github_url: '' });
+                          }} style={{ padding: '14px 20px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}>
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </form>
                   </div>
 
@@ -3668,9 +3884,26 @@ const AdminPanel = () => {
                             <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: '900', color: '#0F172A' }}>{proj.title}</h4>
                             <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B', fontWeight: '700' }}>{proj.category}</p>
                           </div>
-                          <button onClick={() => handleDeleteCorpProject(proj.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
-                            <Trash2 size={15} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => {
+                              setEditingProjectId(proj.id);
+                              setNewProject({
+                                title: proj.title,
+                                category: proj.category,
+                                technologies: Array.isArray(proj.technologies) ? proj.technologies.join(', ') : proj.technologies || '',
+                                short_description: proj.short_description || '',
+                                long_description: proj.long_description || '',
+                                image_url: proj.image_url || '',
+                                live_url: proj.live_url || '',
+                                github_url: proj.github_url || ''
+                              });
+                            }} style={{ padding: '8px', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Pen size={15} />
+                            </button>
+                            <button onClick={() => handleDeleteCorpProject(proj.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -3682,8 +3915,8 @@ const AdminPanel = () => {
               {corpSubTab === 'apks' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
                   <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Add Downloadable Android App</h3>
-                    <form onSubmit={handleAddCorpApk} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>{editingApkId ? 'Edit Downloadable Android App' : 'Add Downloadable Android App'}</h3>
+                    <form onSubmit={editingApkId ? handleUpdateCorpApk : handleAddCorpApk} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>App Name</label>
                         <input type="text" value={newApk.app_name} onChange={e => setNewApk({ ...newApk, app_name: e.target.value })} placeholder="e.g. Cattle Farm App" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
@@ -3753,9 +3986,19 @@ const AdminPanel = () => {
                           </div>
                         )}
                       </div>
-                      <button type="submit" style={{ padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                        <Save size={15} /> Add Downloadable App
-                      </button>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <button type="submit" style={{ flex: 1, padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Save size={15} /> {editingApkId ? 'Save Changes' : 'Add Downloadable App'}
+                        </button>
+                        {editingApkId && (
+                          <button type="button" onClick={() => {
+                            setEditingApkId(null);
+                            setNewApk({ app_name: '', version: '', file_size: '', download_url: '', icon_type: 'smartphone' });
+                          }} style={{ padding: '14px 20px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}>
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </form>
                   </div>
 
@@ -3775,7 +4018,7 @@ const AdminPanel = () => {
                             )}
                             <div>
                               <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: '900', color: '#0F172A' }}>
-                                {apk.app_name.toUpperCase().includes('MILVEXA') ? profileForm.company_name : apk.app_name}
+                                {apk.app_name}
                               </h4>
                               <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
                                 <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>v{apk.version}</span>
@@ -3788,7 +4031,143 @@ const AdminPanel = () => {
                             <div style={{ width: '36px', height: '36px', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '2px', background: 'white' }}>
                               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodeURIComponent(apk.download_url)}`} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             </div>
+                            <button onClick={() => {
+                              setEditingApkId(apk.id);
+                              setNewApk({
+                                app_name: apk.app_name,
+                                version: apk.version,
+                                file_size: apk.file_size,
+                                download_url: apk.download_url,
+                                icon_type: apk.icon_type
+                              });
+                            }} style={{ padding: '8px', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Pen size={15} />
+                            </button>
                             <button onClick={() => handleDeleteCorpApk(apk.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+              {/* Sub-Tab Content 4.5: GUIDES & MANUALS DESK */}
+              {corpSubTab === 'guides' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>{editingGuideId ? 'Edit Guide / manual' : 'Add Guides & Manuals'}</h3>
+                    <form onSubmit={editingGuideId ? handleUpdateCorpGuide : handleAddCorpGuide} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Guide Title</label>
+                        <input type="text" value={newGuide.title} onChange={e => setNewGuide({ ...newGuide, title: e.target.value })} placeholder="e.g. Farmer App Setup Instructions" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Category</label>
+                          <input type="text" value={newGuide.category} onChange={e => setNewGuide({ ...newGuide, category: e.target.value })} placeholder="e.g. Setup manual" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Read Time Tag</label>
+                          <input type="text" value={newGuide.read_time} onChange={e => setNewGuide({ ...newGuide, read_time: e.target.value })} placeholder="e.g. 5 min read" style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '700', outline: 'none' }} required />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Brief Description</label>
+                        <textarea rows="3" value={newGuide.description} onChange={e => setNewGuide({ ...newGuide, description: e.target.value })} placeholder="Write a summary of what this guide teaches..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none', resize: 'none' }} required />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>PDF Document Link / URL</label>
+                        <input type="text" value={newGuide.pdf_url} onChange={e => setNewGuide({ ...newGuide, pdf_url: e.target.value })} placeholder="https://..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} />
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '700', color: '#94A3B8' }}>OR</span>
+                          <label style={{
+                            padding: '8px 16px',
+                            background: '#F1F5F9',
+                            border: '1px dashed #CBD5E1',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            color: '#475569',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}>
+                            {guidePdfUploadLoading ? 'Uploading...' : 'Upload PDF Document'}
+                            <input type="file" accept=".pdf" onChange={handleGuidePdfUpload} style={{ display: 'none' }} disabled={guidePdfUploadLoading} />
+                          </label>
+                          {newGuide.pdf_url && (
+                            <span style={{ fontSize: '11px', color: '#10B981', fontWeight: '700' }}>✓ PDF Document Loaded</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>OR External Manual URL Link</label>
+                        <input type="text" value={newGuide.external_url} onChange={e => setNewGuide({ ...newGuide, external_url: e.target.value })} placeholder="https://external-wiki.com/..." style={{ padding: '14px', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', fontWeight: '600', outline: 'none' }} />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <button type="submit" style={{ flex: 1, padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Save size={15} /> {editingGuideId ? 'Save Changes' : 'Add Guide / Manual'}
+                        </button>
+                        {editingGuideId && (
+                          <button type="button" onClick={() => {
+                            setEditingGuideId(null);
+                            setNewGuide({ title: '', description: '', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' });
+                          }} style={{ padding: '14px 20px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}>
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* List active guides */}
+                  <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900', color: '#0F172A' }}>Active Guides & Manuals ({corpGuides.length})</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {corpGuides.map(guide => (
+                        <div key={guide.id} style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1.5px solid #F1F5F9', borderRadius: '16px' }}>
+                          <div>
+                            <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: '900', color: '#0F172A' }}>{guide.title}</h4>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '2px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '12px', color: '#3B82F6', fontWeight: '800' }}>{guide.category}</span>
+                              <span style={{ fontSize: '12px', color: '#E2E8F0' }}>|</span>
+                              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '700' }}>{guide.read_time}</span>
+                              { (guide.pdf_url || guide.external_url) && (
+                                <>
+                                  <span style={{ fontSize: '12px', color: '#E2E8F0' }}>|</span>
+                                  <a href={guide.pdf_url || guide.external_url} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#10B981', fontWeight: '800', textDecoration: 'none' }}>
+                                    {guide.pdf_url ? '📄 PDF Document' : '🔗 Web Link'}
+                                  </a>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => {
+                              setEditingGuideId(guide.id);
+                              setNewGuide({
+                                title: guide.title,
+                                description: guide.description,
+                                category: guide.category || 'Setup manual',
+                                read_time: guide.read_time || '5 min read',
+                                pdf_url: guide.pdf_url || '',
+                                external_url: guide.external_url || ''
+                              });
+                            }} style={{ padding: '8px', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
+                              <Pen size={15} />
+                            </button>
+                            <button onClick={() => handleDeleteCorpGuide(guide.id)} style={{ padding: '8px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
                               <Trash2 size={15} />
                             </button>
                           </div>

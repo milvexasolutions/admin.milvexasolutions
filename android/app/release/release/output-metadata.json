@@ -12,8 +12,8 @@
       "filters": [],
       "attributes": [],
       "versionCode": 2,
-      "versionName": "1.1.0",
-      "outputFile": "MILVEXA – Cattle Farm Management.apk"
+      "versionName": "1.1.2",
+      "outputFile": "MILVEXA - Cattle Farm Management.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/MILVEXA – Cattle Farm Management.dm"
+        "baselineProfiles/1/MILVEXA - Cattle Farm Management.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/MILVEXA – Cattle Farm Management.dm"
+        "baselineProfiles/0/MILVEXA - Cattle Farm Management.dm"
       ]
     }
   ],

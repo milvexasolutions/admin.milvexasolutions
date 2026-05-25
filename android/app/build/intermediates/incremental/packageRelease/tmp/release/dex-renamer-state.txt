@@ -1,4 +1,4 @@
-#Sat May 23 19:09:31 IST 2026
-base.0=F\:\\project\\milvexa\\android\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+#Mon May 25 17:11:45 IST 2026
+base.0=F\:\\project\\Milvexa - cattle farm management\\android\\app\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
 path.0=classes.dex
 renamed.0=classes.dex

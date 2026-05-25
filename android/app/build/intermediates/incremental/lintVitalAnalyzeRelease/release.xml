@@ -3,11 +3,10 @@
     package="com.milvexa.cattlefarm"
     minSdkVersion="24"
     targetSdkVersion="36.0"
-    shrinking="true"
     mergedManifest="build\intermediates\merged_manifest\release\processReleaseMainManifest\AndroidManifest.xml"
     proguardFiles="build\intermediates\default_proguard_files\global\proguard-android.txt-8.13.0;proguard-rules.pro"
     partialResultsDir="build\intermediates\lint_vital_partial_results\release\lintVitalAnalyzeRelease\out"
-    desugaredMethodsFiles="C:\Users\tausi\.gradle\caches\8.14.3\transforms\9e5263d0dc2e994c88a74cb15a9e2041\transformed\D8BackportedDesugaredMethods.txt">
+    desugaredMethodsFiles="C:\Users\tausi\.gradle\caches\8.14.3\transforms\46d336b5bec704b07cfaf2ba18f4333c\transformed\D8BackportedDesugaredMethods.txt">
   <buildFeatures
       namespacing="REQUIRED"/>
   <sourceProviders>
@@ -27,6 +26,6 @@
       applicationId="com.milvexa.cattlefarm"
       generatedSourceFolders="build\generated\ap_generated_sources\release\out"
       generatedResourceFolders="build\generated\res\resValues\release"
-      desugaredMethodsFiles="C:\Users\tausi\.gradle\caches\8.14.3\transforms\9e5263d0dc2e994c88a74cb15a9e2041\transformed\D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="C:\Users\tausi\.gradle\caches\8.14.3\transforms\46d336b5bec704b07cfaf2ba18f4333c\transformed\D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

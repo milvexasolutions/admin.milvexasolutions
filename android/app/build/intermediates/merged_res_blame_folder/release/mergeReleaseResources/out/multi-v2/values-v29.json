@@ -4,7 +4,7 @@
             "outputFile": "com.milvexa.cattlefarm.app-mergeReleaseResources-26:/values-v29/values-v29.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\tausi\\.gradle\\caches\\8.14.3\\transforms\\76e2d22a01dad4c0063f596d42e10065\\transformed\\core-splashscreen-1.2.0\\res\\values-v29\\values-v29.xml",
+                    "source": "C:\\Users\\tausi\\.gradle\\caches\\8.14.3\\transforms\\4f5eb2e1ae45a07736e2f6ed862ea36a\\transformed\\core-splashscreen-1.2.0\\res\\values-v29\\values-v29.xml",
                     "from": {
                         "startLines": "2,8",
                         "startColumns": "4,4",

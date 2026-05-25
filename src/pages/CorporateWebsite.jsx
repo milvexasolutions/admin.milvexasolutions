@@ -64,6 +64,91 @@ export default function CorporateWebsite() {
 
   const [projects, setProjects] = React.useState([]);
   const [apks, setApks] = React.useState([]);
+  const [guides, setGuides] = React.useState([
+    { id: 'g1', title: 'Farmer App Initial Setup Guide', description: 'Step-by-step instructions to download the Cattle Farm App, register, connect your dairy society ID, and configure notifications.', category: 'Setup manual', read_time: '5 min read', pdf_url: '', external_url: '' },
+    { id: 'g2', title: 'Automated Calf Lifecycle Promotion rules', description: 'Understand growth thresholds for heifers, female calves, bull promotion rules, and how local data models coordinate state.', category: 'Herd Science', read_time: '8 min read', pdf_url: '', external_url: '' },
+    { id: 'g3', title: 'Dairy Society Milk Billing Ledger API', description: 'Developer reference detailing standard price rates structures, SNF parameters, fat content calculation queries formulas.', category: 'API Integration', read_time: '12 min read', pdf_url: '', external_url: '' }
+  ]);
+
+
+  // Inject complete JSON-LD Structured Schema & dynamic meta description on mount
+  React.useEffect(() => {
+    // 1. Dynamic Head Elements
+    document.title = "Milvexa Solutions | Premium Mobile App & Software Development Company";
+
+    // Set meta description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = "description";
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = "Milvexa Solutions Pvt Ltd builds custom Android apps, high-performance web applications, secure admin panels, and scalable enterprise software solutions.";
+
+    // Set canonical link
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = "https://www.milvexasolutions.in/";
+
+    // 2. Inject Organization JSON-LD Schema
+    const organizationSchema = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Milvexa Solutions Pvt Ltd",
+      "alternateName": "Milvexa Solutions",
+      "url": "https://www.milvexasolutions.in",
+      "logo": "https://www.milvexasolutions.in/logo.png",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+91 96247 45944",
+        "contactType": "customer service",
+        "email": "support@milvexasolutions.in",
+        "availableLanguage": ["en", "hi"]
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Anand",
+        "addressRegion": "Gujarat",
+        "addressCountry": "India"
+      },
+      "sameAs": [
+        "https://www.linkedin.com/company/milvexa-solutions",
+        "https://github.com/milvexasolutions"
+      ]
+    };
+
+    // Inject Software Application Schema for our Cattle ERP App
+    const softwareSchema = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Milvexa Cattle Farm Management ERP",
+      "operatingSystem": "Android, Web",
+      "applicationCategory": "BusinessApplication, AgroTech",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR"
+      }
+    };
+
+    const scriptTag = document.createElement('script');
+    scriptTag.type = 'application/ld+json';
+    scriptTag.id = 'milvexa-jsonld-schema';
+    scriptTag.innerHTML = JSON.stringify([organizationSchema, softwareSchema]);
+    document.head.appendChild(scriptTag);
+
+    return () => {
+      // Cleanup injected script on unmount
+      const existing = document.getElementById('milvexa-jsonld-schema');
+      if (existing) {
+        existing.remove();
+      }
+    };
+  }, []);
 
   // Load dynamic data from Supabase
   React.useEffect(() => {
@@ -103,6 +188,15 @@ export default function CorporateWebsite() {
           .order('created_at', { ascending: true });
         if (!apksErr) {
           setApks(apksData || []);
+        }
+
+        // Fetch Guides & Manuals
+        const { data: guidesData, error: guidesErr } = await supabase
+          .from('corporate_guides')
+          .select('*')
+          .order('created_at', { ascending: true });
+        if (!guidesErr && guidesData && guidesData.length > 0) {
+          setGuides(guidesData);
         }
       } catch (err) {
         console.warn('Database fetch failed.', err);
@@ -977,8 +1071,9 @@ export default function CorporateWebsite() {
           {/* App Cards Desk */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '24px'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 420px))',
+            gap: '24px',
+            justifyContent: 'center'
           }}>
             {apks.map((app) => (
               <div 
@@ -1004,7 +1099,7 @@ export default function CorporateWebsite() {
                   )}
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '900' }}>
-                      {app.app_name.toUpperCase().includes('MILVEXA') ? profile.company_name : app.app_name}
+                      {app.app_name}
                     </h4>
                     <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
                       <span style={{ fontSize: '11px', fontWeight: '800', color: colors.textMuted }}>v{app.version}</span>
@@ -1111,13 +1206,9 @@ export default function CorporateWebsite() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
             gap: '24px'
           }}>
-            {[
-              { title: 'Farmer App Initial Setup Guide', desc: 'Step-by-step instructions to download the Cattle Farm App, register, connect your dairy society ID, and configure notifications.', category: 'Setup manual', readTime: '5 min read' },
-              { title: 'Automated Calf Lifecycle Promotion rules', desc: 'Understand growth thresholds for heifers, female calves, bull promotion rules, and how local data models coordinate state.', category: 'Herd Science', readTime: '8 min read' },
-              { title: 'Dairy Society Milk Billing Ledger API', desc: 'Developer reference detailing standard price rates structures, SNF parameters, fat content calculation queries formulas.', category: 'API Integration', readTime: '12 min read' }
-            ].map((blog, idx) => (
+            {guides.map((blog, idx) => (
               <div 
-                key={idx} 
+                key={blog.id || idx} 
                 style={{
                   background: isDarkMode ? '#1E293B' : '#FFFFFF',
                   borderRadius: '24px',
@@ -1129,14 +1220,21 @@ export default function CorporateWebsite() {
                   gap: '12px',
                   cursor: 'pointer'
                 }}
-                onClick={() => alert(`"${blog.title}" manual is loaded via local files. You can configure complete blog logs dynamically later!`)}
+                onClick={() => {
+                  const url = blog.pdf_url || blog.external_url;
+                  if (url) {
+                    window.open(url, '_blank');
+                  } else {
+                    alert(`"${blog.title}" has no document or manual URL uploaded yet. Please add one inside the Admin Panel CMS!`);
+                  }
+                }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#10B981', textTransform: 'uppercase' }}>{blog.category}</span>
-                  <span style={{ fontSize: '11px', fontWeight: '700', color: colors.textMuted }}>{blog.readTime}</span>
+                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#10B981', textTransform: 'uppercase' }}>{blog.category || 'Manual'}</span>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: colors.textMuted }}>{blog.read_time || '5 min read'}</span>
                 </div>
                 <h4 style={{ margin: 0, fontSize: '16.5px', fontWeight: '900', lineHeight: 1.3 }}>{blog.title}</h4>
-                <p style={{ margin: 0, fontSize: '13.5px', color: colors.textMuted, lineHeight: 1.5, fontWeight: '600' }}>{blog.desc}</p>
+                <p style={{ margin: 0, fontSize: '13.5px', color: colors.textMuted, lineHeight: 1.5, fontWeight: '600' }}>{blog.description}</p>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#3B82F6', fontSize: '12px', fontWeight: '800', marginTop: '6px' }}>
                   Read Manual <ArrowRight size={14} />

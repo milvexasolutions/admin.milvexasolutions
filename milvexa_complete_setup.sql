@@ -84,6 +84,18 @@ CREATE TABLE IF NOT EXISTS public.contact_queries (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- F. CORPORATE DOCUMENTATION GUIDES TABLE
+CREATE TABLE IF NOT EXISTS public.corporate_guides (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'Setup manual',
+    read_time TEXT NOT NULL DEFAULT '5 min read',
+    pdf_url TEXT,
+    external_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ============================================================
 -- 3. APP FARM MANAGEMENT TABLES
 -- ============================================================
@@ -393,6 +405,7 @@ ALTER TABLE public.corporate_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.corporate_projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.corporate_apks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_queries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.corporate_guides ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.animals ENABLE ROW LEVEL SECURITY;
@@ -438,6 +451,11 @@ DROP POLICY IF EXISTS "Public Read contact_queries" ON public.contact_queries;
 CREATE POLICY "Public Read contact_queries" ON public.contact_queries FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public Manage contact_queries" ON public.contact_queries;
 CREATE POLICY "Public Manage contact_queries" ON public.contact_queries FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public Read corporate_guides" ON public.corporate_guides;
+CREATE POLICY "Public Read corporate_guides" ON public.corporate_guides FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Manage corporate_guides" ON public.corporate_guides;
+CREATE POLICY "Public Manage corporate_guides" ON public.corporate_guides FOR ALL USING (true) WITH CHECK (true);
 
 -- C. Policies for App Farm Management Tables (Owner-isolated access checks)
 DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
@@ -562,6 +580,13 @@ INSERT INTO public.corporate_apks (app_name, version, file_size, download_url, i
 ('Billing App', '2.1.0', '18.7 MB', '#', 'wallet', '18 May 2026'),
 ('Attendance App', '1.2.0', '16.2 MB', '#', 'briefcase', '10 May 2026'),
 ('Inventory App', '1.0.6', '22.8 MB', '#', 'package', '05 May 2026')
+ON CONFLICT DO NOTHING;
+
+-- G. Seed Corporate Guides
+INSERT INTO public.corporate_guides (title, description, category, read_time, pdf_url, external_url) VALUES
+('Farmer App Initial Setup Guide', 'Step-by-step instructions to download the Cattle Farm App, register, connect your dairy society ID, and configure notifications.', 'Setup manual', '5 min read', NULL, NULL),
+('Automated Calf Lifecycle Promotion rules', 'Understand growth thresholds for heifers, female calves, bull promotion rules, and how local data models coordinate state.', 'Herd Science', '8 min read', NULL, NULL),
+('Dairy Society Milk Billing Ledger API', 'Developer reference detailing standard price rates structures, SNF parameters, fat content calculation queries formulas.', 'API Integration', '12 min read', NULL, NULL)
 ON CONFLICT DO NOTHING;
 
 -- E. Seed Default Admin Role Whitelist (Username: milvexa, Plain password: admin@123)

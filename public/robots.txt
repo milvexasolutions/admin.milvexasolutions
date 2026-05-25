@@ -1,0 +1,11 @@
+# https://www.milvexasolutions.in robots.txt
+User-agent: *
+Allow: /
+
+# Prevent indexing of administrative dashboard and app client portals
+Disallow: /admin/
+Disallow: /app/
+Disallow: /login
+
+# Direct crawlers to the unified sitemap
+Sitemap: https://www.milvexasolutions.in/sitemap.xml

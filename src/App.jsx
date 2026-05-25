@@ -1600,7 +1600,7 @@ const AppContent = () => {
     return () => { document.body.style.overflow = 'auto'; };
   }, [isSidebarOpen]);
 
-  const APP_VERSION = "v1.0.0"; // Current installed version
+  const APP_VERSION = "v1.1.1"; // Current installed version
 
   // Expose triggers to allow Settings.jsx to initiate a manual update check
   React.useEffect(() => {
@@ -1629,13 +1629,13 @@ const AppContent = () => {
       .single();
 
     // Splash timeout: If the database is slow, bypass within 1.8 seconds to avoid freeze
-    const timeoutPromise = new Promise((resolve) => 
+    const timeoutPromise = new Promise((resolve) =>
       setTimeout(() => resolve({ timeout: true }), 1800)
     );
 
     try {
-      const result = manual 
-        ? await dbPromise 
+      const result = manual
+        ? await dbPromise
         : await Promise.race([dbPromise, timeoutPromise]);
 
       if (result && result.timeout) {
@@ -1659,7 +1659,7 @@ const AppContent = () => {
               announceImage = parsed.image || '';
               isMaint = parsed.is_maintenance || false;
               maintMsg = parsed.maintenance_message || '';
-            } catch (e) {}
+            } catch (e) { }
           }
           if (isMaint) {
             setMaintenanceInfo({ text: maintMsg || 'System is currently undergoing scheduled maintenance.' });
@@ -1935,7 +1935,7 @@ const AppContent = () => {
           position: 'relative',
           zIndex: 1
         }}>
-          
+
           {/* Animated Gear Cluster */}
           <div style={{
             position: 'relative',
@@ -2086,23 +2086,23 @@ const AppContent = () => {
         padding: '24px'
       }}>
         {/* Animated Background Glows */}
-        <div style={{ 
-          position: 'absolute', 
-          width: '260px', 
-          height: '260px', 
-          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%)', 
-          top: '25%', 
-          left: '15%', 
-          animation: 'pulse 4s infinite ease-in-out' 
+        <div style={{
+          position: 'absolute',
+          width: '260px',
+          height: '260px',
+          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%)',
+          top: '25%',
+          left: '15%',
+          animation: 'pulse 4s infinite ease-in-out'
         }}></div>
-        <div style={{ 
-          position: 'absolute', 
-          width: '320px', 
-          height: '320px', 
-          background: 'radial-gradient(circle, rgba(11, 31, 77, 0.4) 0%, transparent 70%)', 
-          bottom: '20%', 
-          right: '5%', 
-          animation: 'pulse 6s infinite ease-in-out' 
+        <div style={{
+          position: 'absolute',
+          width: '320px',
+          height: '320px',
+          background: 'radial-gradient(circle, rgba(11, 31, 77, 0.4) 0%, transparent 70%)',
+          bottom: '20%',
+          right: '5%',
+          animation: 'pulse 6s infinite ease-in-out'
         }}></div>
 
         <div
@@ -2120,19 +2120,19 @@ const AppContent = () => {
           }}
         >
           {/* Header Section */}
-          <div style={{ 
-            height: '145px', 
-            background: 'linear-gradient(135deg, #091e3a 0%, #004d3d 100%)', 
-            position: 'relative', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center' 
+          <div style={{
+            height: '145px',
+            background: 'linear-gradient(135deg, #091e3a 0%, #004d3d 100%)',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
-            <div style={{ 
-              position: 'absolute', 
-              inset: 0, 
-              opacity: 0.35, 
-              background: 'radial-gradient(at 0% 0%, #10b981 0px, transparent 60%), radial-gradient(at 100% 100%, #1e40af 0px, transparent 65%)' 
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: 0.35,
+              background: 'radial-gradient(at 0% 0%, #10b981 0px, transparent 60%), radial-gradient(at 100% 100%, #1e40af 0px, transparent 65%)'
             }}></div>
 
             <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
@@ -2180,12 +2180,12 @@ const AppContent = () => {
           {/* Details & Action section */}
           <div style={{ padding: '30px 24px 28px' }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <h2 style={{ 
-                fontSize: '24px', 
-                fontWeight: '900', 
-                color: '#0f172a', 
-                marginBottom: '6px', 
-                letterSpacing: '-0.5px' 
+              <h2 style={{
+                fontSize: '24px',
+                fontWeight: '900',
+                color: '#0f172a',
+                marginBottom: '6px',
+                letterSpacing: '-0.5px'
               }}>
                 Time to Upgrade!
               </h2>
@@ -2205,30 +2205,30 @@ const AppContent = () => {
               overflowY: 'auto'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                <div style={{ 
-                  width: '24px', 
-                  height: '24px', 
-                  borderRadius: '7px', 
-                  background: 'rgba(16, 185, 129, 0.1)', 
-                  color: '#059669', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '7px',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}>
                   <PlusCircle size={14} />
                 </div>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: '11px', 
-                  fontWeight: '900', 
-                  color: '#475569', 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '0.8px' 
+                <p style={{
+                  margin: 0,
+                  fontSize: '11px',
+                  fontWeight: '900',
+                  color: '#475569',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.8px'
                 }}>
                   Release Highlights
                 </p>
               </div>
-              
+
               {renderReleaseNotes(updateInfo.release_notes)}
             </div>
 
@@ -2341,37 +2341,37 @@ const AppContent = () => {
             }}
           >
             {/* Header Ribbon */}
-            <div style={{ 
-              background: 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)', 
-              color: 'white', 
-              padding: '20px 24px', 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              background: 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)',
+              color: 'white',
+              padding: '20px 24px',
+              display: 'flex',
+              alignItems: 'center',
               gap: '12px',
               position: 'relative'
             }}>
-              <div style={{ 
-                width: '32px', 
-                height: '32px', 
-                background: 'rgba(255,255,255,0.2)', 
-                borderRadius: '10px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center' 
+              <div style={{
+                width: '32px',
+                height: '32px',
+                background: 'rgba(255,255,255,0.2)',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
                 <span style={{ fontSize: '16px' }}>📢</span>
               </div>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '900', letterSpacing: '0.3px' }}>Milvexa Announcement</h3>
-              
-              <button 
-                onClick={() => setAnnouncementBanner(null)} 
-                style={{ 
-                  position: 'absolute', 
-                  right: '20px', 
-                  top: '20px', 
-                  background: 'none', 
-                  border: 'none', 
-                  color: 'white', 
+
+              <button
+                onClick={() => setAnnouncementBanner(null)}
+                style={{
+                  position: 'absolute',
+                  right: '20px',
+                  top: '20px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'white',
                   cursor: 'pointer',
                   padding: '4px',
                   opacity: 0.8
@@ -2384,15 +2384,15 @@ const AppContent = () => {
             <div style={{ padding: '24px' }}>
               {/* Optional Broadcast Image */}
               {announcementBanner.image && (
-                <div 
+                <div
                   onClick={() => window.open(announcementBanner.image, '_blank')}
                   title="Click to view full size in browser"
-                  style={{ 
-                    width: '100%', 
-                    maxHeight: '200px', 
-                    borderRadius: '18px', 
-                    overflow: 'hidden', 
-                    marginBottom: '20px', 
+                  style={{
+                    width: '100%',
+                    maxHeight: '200px',
+                    borderRadius: '18px',
+                    overflow: 'hidden',
+                    marginBottom: '20px',
                     boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
                     border: '1px solid #E2E8F0',
                     background: '#F8FAFC',
@@ -2400,10 +2400,10 @@ const AppContent = () => {
                     position: 'relative'
                   }}
                 >
-                  <img 
-                    src={announcementBanner.image} 
-                    alt="Announcement Media" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }} 
+                  <img
+                    src={announcementBanner.image}
+                    alt="Announcement Media"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                   />
@@ -2428,11 +2428,11 @@ const AppContent = () => {
               )}
 
               {/* Announcement Message Text */}
-              <p style={{ 
-                margin: '0 0 24px', 
-                fontSize: '15px', 
-                color: '#1E293B', 
-                lineHeight: '1.6', 
+              <p style={{
+                margin: '0 0 24px',
+                fontSize: '15px',
+                color: '#1E293B',
+                lineHeight: '1.6',
                 fontWeight: '700',
                 textAlign: announcementBanner.image ? 'left' : 'center'
               }}>

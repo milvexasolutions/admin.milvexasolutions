@@ -745,7 +745,7 @@ const Login = () => {
           lineHeight: '1.6'
         }}>
           <p style={{ margin: 0 }}>© 2024 Milvexa. All rights reserved.</p>
-          <p style={{ margin: '2px 0 0 0', letterSpacing: '0.5px' }}>Version v1.0.0</p>
+          <p style={{ margin: '2px 0 0 0', letterSpacing: '0.5px' }}>Version v1.1.1</p>
         </div>
       </div>
 

@@ -1498,7 +1498,7 @@ const Settings = () => {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#0B1F4D' }}>{t('app_about_title', 'Milvexa Cattle Farm Management')}</h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748B', fontWeight: '800' }}>{t('app_version_string', 'App Version v1.0.0 (Release build)')}</p>
+                  <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748B', fontWeight: '800' }}>{t('app_version_string', 'App Version v1.1.1 (Release build)')}</p>
                 </div>
                 
                 {/* Premium Update Checker Actions */}

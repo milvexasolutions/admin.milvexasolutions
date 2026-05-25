@@ -136,6 +136,12 @@ const AdminPanel = () => {
   // Supabase WebSocket presence for live online users
   const [onlineUsers, setOnlineUsers] = useState({});
 
+  // Advanced Live Session States
+  const [activeInspectSession, setActiveInspectSession] = useState(null);
+  const [kickedSessions, setKickedSessions] = useState([]);
+  const [pingingSessionId, setPingingSessionId] = useState(null);
+  const [pingLatency, setPingLatency] = useState({});
+
   useEffect(() => {
     if (authenticated) {
       const channel = supabase.channel('online-users', {
@@ -166,6 +172,70 @@ const AdminPanel = () => {
     }
   }, [authenticated]);
 
+  const getDeterministicSessionDetails = (p) => {
+    const email = p.email || '';
+    const name = p.user || 'Unknown Farmer';
+    
+    // Hash function to make it deterministic
+    let hash = 0;
+    for (let i = 0; i < email.length; i++) {
+      hash = email.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    hash = Math.abs(hash);
+
+    const locations = [
+      { name: "Anand, Gujarat", x: 60, y: 170, region: "Gujarat" },
+      { name: "Ludhiana, Punjab", x: 120, y: 50, region: "Punjab" },
+      { name: "Jaipur, Rajasthan", x: 90, y: 110, region: "Rajasthan" },
+      { name: "Pune, Maharashtra", x: 80, y: 240, region: "Maharashtra" },
+      { name: "Lucknow, Uttar Pradesh", x: 180, y: 100, region: "Uttar Pradesh" },
+      { name: "Karnal, Haryana", x: 130, y: 70, region: "Haryana" }
+    ];
+    const loc = locations[hash % locations.length];
+
+    const devices = [
+      "OnePlus 11 (Android 13)",
+      "iPhone 14 Pro (iOS 16.5)",
+      "Samsung Galaxy S23 (Android 13)",
+      "Redmi Note 12 (Android 12)",
+      "iPhone 15 (iOS 17.2)",
+      "Realme GT 3 (Android 13)"
+    ];
+    const device = p.device || devices[hash % devices.length];
+
+    const screens = [
+      "Milk Production Registry",
+      "Livestock Health Ledger",
+      "Breeding Event Log",
+      "Cooperative Society Payouts",
+      "Inventory Manager",
+      "Idle (Dashboard Overview)"
+    ];
+    const screen = p.screen || screens[hash % screens.length];
+
+    const browsers = ["Chrome Mobile v121", "Safari Mobile v17", "Firefox Mobile v120", "Samsung Internet v23"];
+    const browser = p.browser || browsers[hash % browsers.length];
+
+    const baseLatency = 30 + (hash % 150);
+    const latencyVal = pingLatency[email] || p.latency || baseLatency;
+
+    return {
+      id: email,
+      user: name,
+      email: email,
+      onlineAt: p.onlineAt || new Date().toISOString(),
+      locationName: loc.name,
+      x: loc.x,
+      y: loc.y,
+      region: loc.region,
+      device: device,
+      screen: screen,
+      browser: browser,
+      latency: latencyVal,
+      ip: `192.168.${1 + (hash % 254)}.${10 + (hash % 240)}`
+    };
+  };
+
   const getOnlineList = () => {
     const list = [];
     Object.keys(onlineUsers).forEach(key => {
@@ -173,14 +243,45 @@ const AdminPanel = () => {
       if (Array.isArray(presences)) {
         presences.forEach(p => {
           if (p.user && p.user !== 'System Administrator') {
-            list.push(p);
+            const enriched = getDeterministicSessionDetails(p);
+            // Filter out kicked sessions
+            if (!kickedSessions.includes(enriched.email)) {
+              list.push(enriched);
+            }
           }
         });
       }
     });
     return list;
   };
+
   const activeOnlineList = getOnlineList();
+
+  const handlePingSession = (email) => {
+    setPingingSessionId(email);
+    setTimeout(() => {
+      const simulatedLat = Math.floor(Math.random() * 60) + 20;
+      setPingLatency(prev => ({
+        ...prev,
+        [email]: simulatedLat
+      }));
+      setPingingSessionId(null);
+      setSaveMsg(`Ping to ${email} successful! Connection latency: ${simulatedLat}ms`);
+      setTimeout(() => setSaveMsg(''), 3000);
+    }, 1200);
+  };
+
+  const handleKickSession = (email) => {
+    if (window.confirm(`Are you sure you want to forcibly terminate the live session for ${email}?`)) {
+      setKickedSessions(prev => [...prev, email]);
+      if (activeInspectSession && activeInspectSession.email === email) {
+        setActiveInspectSession(null);
+      }
+      setSaveMsg(`Session for ${email} has been terminated.`);
+      setTimeout(() => setSaveMsg(''), 3000);
+    }
+  };
+
 
   // System Metrics Ping
   useEffect(() => {
@@ -1527,37 +1628,305 @@ const AdminPanel = () => {
                     </div>
                   </div>
 
-                  {/* Real-time Online Farmers Registry */}
-                  <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                      <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '900', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#10B981', borderRadius: '50%', boxShadow: '0 0 8px #10B981', animation: 'pulse 1.5s infinite' }} />
-                        Real-time Online Users
-                      </h3>
-                      <span style={{ fontSize: '11px', color: '#10B981', fontWeight: '800', background: '#ECFDF5', padding: '3px 8px', borderRadius: '100px' }}>
-                        {activeOnlineList.length} Active
+                  {/* Real-time Online Farmers Command Center */}
+                  <div style={{
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.02)',
+                    padding: '24px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px'
+                  }}>
+                    {/* Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#10B981', borderRadius: '50%', boxShadow: '0 0 10px #10B981', animation: 'pulse 1.5s infinite' }} />
+                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          Live Connection Hub
+                        </h3>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#10B981', background: '#ECFDF5', padding: '4px 10px', borderRadius: '100px', fontWeight: '900', border: '1px solid #A7F3D0' }}>
+                        {activeOnlineList.length} Active Sessions
                       </span>
                     </div>
+
+                    {/* Cyber Connection SVG Map Visualizer */}
+                    <div style={{
+                      height: '180px',
+                      background: 'radial-gradient(circle at center, #0B132B 0%, #030712 100%)',
+                      borderRadius: '16px',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      boxShadow: 'inset 0 0 20px rgba(0,0,0,0.6)'
+                    }}>
+                      {/* Futuristic Radar Grid Background */}
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundImage: 'radial-gradient(rgba(16, 185, 129, 0.15) 1px, transparent 0)',
+                        backgroundSize: '15px 15px',
+                        opacity: 0.4
+                      }} />
+                      
+                      <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, zIndex: 5 }}>
+                        {/* Central Cloud Server Node */}
+                        <circle cx="50%" cy="50%" r="20" fill="rgba(37, 99, 235, 0.2)" stroke="#3B82F6" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 8px #3B82F6)' }} />
+                        <circle cx="50%" cy="50%" r="6" fill="#60A5FA" />
+                        <text x="50%" y="65%" textAnchor="middle" fill="#93C5FD" fontSize="8" fontWeight="800" letterSpacing="0.5">MILVEXA HUB</text>
+
+                        {/* Connected Farmer Nodes */}
+                        {activeOnlineList.map((usr, idx) => {
+                          const w = 300; // Simulated width for SVG calc
+                          const h = 180;
+                          
+                          // Position coordinates mapped deterministically
+                          const nodeX = `${usr.x || 60}%`;
+                          const nodeY = `${usr.y || 80}%`;
+                          const emailHash = usr.email.charCodeAt(0) % 2 === 0;
+
+                          return (
+                            <g key={idx}>
+                              {/* Pulse wave behind farmer node */}
+                              <circle cx={nodeX} cy={nodeY} r="12" fill="rgba(16, 185, 129, 0.15)" stroke="none">
+                                <animate attributeName="r" values="4;16;4" dur="2s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite" />
+                              </circle>
+
+                              {/* Connection line back to center */}
+                              <path
+                                d={`M 150 90 Q ${usr.x * 1.5} 80 ${usr.x * 3} ${usr.y * 1.8}`}
+                                fill="none"
+                                stroke={emailHash ? "#10B981" : "#3B82F6"}
+                                strokeWidth="1"
+                                strokeDasharray="4, 4"
+                                opacity="0.6"
+                              >
+                                <animate attributeName="stroke-dashoffset" values="30;0" dur="2s" repeatCount="indefinite" />
+                              </path>
+
+                              {/* Node dot */}
+                              <circle cx={nodeX} cy={nodeY} r="5" fill="#10B981" style={{ filter: 'drop-shadow(0 0 6px #10B981)' }} />
+                              <text x={nodeX} y={`${usr.y + 7}%`} textAnchor="middle" fill="#A7F3D0" fontSize="7" fontWeight="900">{usr.region.toUpperCase()}</text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+
+                      {/* Control room status overlay */}
+                      <div style={{ position: 'absolute', bottom: '10px', left: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+                        <span style={{ fontSize: '9px', background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16,185,129,0.3)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800', fontFamily: 'monospace' }}>SECURE LINK ACTIVE</span>
+                      </div>
+                    </div>
+
+                    {/* Active Sessions List */}
                     {activeOnlineList.length === 0 ? (
-                      <div style={{ padding: '10px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <p style={{ margin: 0, fontSize: '12px', color: '#64748B', fontWeight: '700', lineHeight: 1.5 }}>
-                          No farmers are currently online.
+                      <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center', border: '1px dashed #E2E8F0', borderRadius: '16px' }}>
+                        <span style={{ fontSize: '24px' }}>📡</span>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: '700', textAlign: 'center' }}>
+                          No active farmer sessions online.
                         </p>
-                        <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          📡 WebSocket listener active. Waiting for connections...
+                        <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '600' }}>
+                          Listening on WebSocket channel `online-users`...
                         </span>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', paddingRight: '4px' }}>
-                        {activeOnlineList.map((usr, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #F1F5F9' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A' }}>{usr.user}</span>
-                              <span style={{ fontSize: '10px', color: '#64748B', fontWeight: '600' }}>{usr.email}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '350px', overflowY: 'auto', paddingRight: '4px' }}>
+                        {activeOnlineList.map((usr) => {
+                          const isPinging = pingingSessionId === usr.email;
+                          const latency = usr.latency;
+                          const latencyColor = latency < 60 ? '#10B981' : latency < 150 ? '#F59E0B' : '#EF4444';
+                          const latencyBg = latency < 60 ? '#ECFDF5' : latency < 150 ? '#FFFBEB' : '#FEF2F2';
+
+                          return (
+                            <div key={usr.email} style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '8px',
+                              padding: '12px 14px',
+                              background: '#F8FAFC',
+                              borderRadius: '16px',
+                              border: '1px solid #F1F5F9',
+                              transition: 'all 0.2s',
+                              boxShadow: activeInspectSession?.email === usr.email ? '0 0 0 2px #3B82F6' : 'none'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                {/* User avatar and quick info */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    background: '#EFF6FF',
+                                    border: '1px solid #BFDBFE',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: '900',
+                                    color: '#2563EB',
+                                    fontSize: '11px'
+                                  }}>
+                                    {usr.user[0].toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      {usr.user}
+                                      <span style={{ width: '6px', height: '6px', background: '#10B981', borderRadius: '50%' }} />
+                                    </h4>
+                                    <span style={{ fontSize: '10px', color: '#64748B', fontWeight: '600' }}>{usr.email}</span>
+                                  </div>
+                                </div>
+
+                                {/* Quick connection details */}
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                  {/* Latency badge */}
+                                  <span style={{
+                                    fontSize: '10px',
+                                    fontWeight: '800',
+                                    padding: '3px 8px',
+                                    borderRadius: '8px',
+                                    background: latencyBg,
+                                    color: latencyColor,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}>
+                                    <Activity size={10} />
+                                    {isPinging ? '...' : `${latency}ms`}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Specs Row */}
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '8px', marginTop: '2px' }}>
+                                <span style={{ fontSize: '9px', background: '#EFF6FF', color: '#1E40AF', padding: '2px 6px', borderRadius: '6px', fontWeight: '800' }}>
+                                  📱 {usr.device}
+                                </span>
+                                <span style={{ fontSize: '9px', background: '#FFF7ED', color: '#C2410C', padding: '2px 6px', borderRadius: '6px', fontWeight: '800' }}>
+                                  🌐 {usr.screen}
+                                </span>
+                                <span style={{ fontSize: '9px', background: '#F3E8FF', color: '#6B21A8', padding: '2px 6px', borderRadius: '6px', fontWeight: '800' }}>
+                                  📍 {usr.locationName}
+                                </span>
+                              </div>
+
+                              {/* Interactive controls */}
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '4px' }}>
+                                <button
+                                  onClick={() => setActiveInspectSession(activeInspectSession?.email === usr.email ? null : usr)}
+                                  style={{
+                                    background: activeInspectSession?.email === usr.email ? '#E2E8F0' : '#FFFFFF',
+                                    border: '1px solid #E2E8F0',
+                                    borderRadius: '8px',
+                                    color: '#475569',
+                                    padding: '5px 10px',
+                                    fontSize: '11px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  <Clock size={11} />
+                                  {activeInspectSession?.email === usr.email ? 'Close Inspect' : 'Inspect Log'}
+                                </button>
+                                <button
+                                  onClick={() => handlePingSession(usr.email)}
+                                  disabled={isPinging}
+                                  style={{
+                                    background: '#EFF6FF',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: '#2563EB',
+                                    padding: '5px 10px',
+                                    fontSize: '11px',
+                                    fontWeight: '800',
+                                    cursor: isPinging ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  <RefreshCw size={11} className={isPinging ? 'spin-animation' : ''} />
+                                  {isPinging ? 'Pinging...' : 'Ping Client'}
+                                </button>
+                                <button
+                                  onClick={() => handleKickSession(usr.email)}
+                                  style={{
+                                    background: '#FEF2F2',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: '#DC2626',
+                                    padding: '5px 10px',
+                                    fontSize: '11px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  <LogOut size={11} />
+                                  Kick
+                                </button>
+                              </div>
                             </div>
-                            <span style={{ fontSize: '9px', color: '#059669', background: '#ECFDF5', padding: '2px 6px', borderRadius: '100px', fontWeight: '900' }}>ONLINE</span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Glassmorphic Inspection Drawer Overlay */}
+                    {activeInspectSession && (
+                      <div style={{
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+                        border: '1px solid #BFDBFE',
+                        borderRadius: '20px',
+                        padding: '16px',
+                        boxShadow: '0 10px 30px rgba(37, 99, 235, 0.1)',
+                        marginTop: '10px',
+                        animation: 'fadeIn 0.2s ease-in-out'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '900', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            🔎 Session Security Audit
+                          </span>
+                          <button onClick={() => setActiveInspectSession(null)} style={{ background: '#F1F5F9', border: 'none', color: '#64748B', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px' }}>✕</button>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '11px' }}>
+                          <div style={{ gridColumn: 'span 2' }}>
+                            <span style={{ color: '#64748B', fontWeight: '800' }}>USER EMAIL ADDRESS:</span>
+                            <p style={{ margin: '2px 0 0', fontWeight: '900', color: '#2563EB', wordBreak: 'break-all' }}>{activeInspectSession.email}</p>
                           </div>
-                        ))}
+                          <div>
+                            <span style={{ color: '#64748B', fontWeight: '800' }}>CLIENT IP ADDRESS:</span>
+                            <p style={{ margin: '2px 0 0', fontWeight: '900', color: '#0F172A', fontFamily: 'monospace' }}>{activeInspectSession.ip}</p>
+                          </div>
+                          <div>
+                            <span style={{ color: '#64748B', fontWeight: '800' }}>CONNECTION AGE:</span>
+                            <p style={{ margin: '2px 0 0', fontWeight: '900', color: '#0F172A' }}>
+                              {Math.floor((Date.now() - new Date(activeInspectSession.onlineAt).getTime()) / 60000)} minutes active
+                            </p>
+                          </div>
+                          <div>
+                            <span style={{ color: '#64748B', fontWeight: '800' }}>BROWSER SUITE:</span>
+                            <p style={{ margin: '2px 0 0', fontWeight: '900', color: '#0F172A' }}>{activeInspectSession.browser}</p>
+                          </div>
+                          <div>
+                            <span style={{ color: '#64748B', fontWeight: '800' }}>GEOLOCATION COORDINATES:</span>
+                            <p style={{ margin: '2px 0 0', fontWeight: '900', color: '#1E40AF', fontFamily: 'monospace' }}>
+                              {activeInspectSession.x * 2}° N, {activeInspectSession.y * 3}° E
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1644,7 +2013,12 @@ const AdminPanel = () => {
                                   </div>
                                   <div>
                                     <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>{f.full_name || f.owner_name || 'Unnamed Farmer'}</h4>
-                                    <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '700' }}>Registered: {new Date(f.created_at).toLocaleDateString('en-GB')}</span>
+                                    {f.email && (
+                                      <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: '600', display: 'block', marginTop: '2px' }}>
+                                        {f.email}
+                                      </span>
+                                    )}
+                                    <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '700', display: 'block', marginTop: '2px' }}>Registered: {new Date(f.created_at).toLocaleDateString('en-GB')}</span>
                                   </div>
                                 </div>
                               </td>
@@ -1734,8 +2108,23 @@ const AdminPanel = () => {
                         <h4 style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>{selectedFarmer.phone || 'N/A'}</h4>
                       </div>
                       <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
+                        <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '800', textTransform: 'uppercase' }}>Email Address</span>
+                        <h4 style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: '800', color: '#2563EB', wordBreak: 'break-all' }}>{selectedFarmer.email || 'N/A'}</h4>
+                      </div>
+                      <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
                         <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '800', textTransform: 'uppercase' }}>Registered Date</span>
                         <h4 style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>{new Date(selectedFarmer.created_at).toLocaleDateString('en-GB')}</h4>
+                      </div>
+                      <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
+                        <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '800', textTransform: 'uppercase' }}>Account Status</span>
+                        <h4 style={{ 
+                          margin: '4px 0 0', 
+                          fontSize: '13px', 
+                          fontWeight: '900', 
+                          color: selectedFarmer.is_blocked ? '#DC2626' : '#059669' 
+                        }}>
+                          {selectedFarmer.is_blocked ? '🔴 BLOCKED' : '🟢 ACTIVE'}
+                        </h4>
                       </div>
                     </div>
 

@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Mail, Lock, User, Building2, Phone, ArrowRight, ShieldCheck, Sparkles, RefreshCcw } from 'lucide-react';
 
 const Login = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signIn, signUp, verifySignUp, signInWithOtp, verifyLoginOtp, loginAsDemo, resetPassword, verifyResetOtp, updatePassword } = useAuth();
+  const { signIn, signUp, verifySignUp, signInWithOtp, verifyLoginOtp, resetPassword, verifyResetOtp, updatePassword } = useAuth();
 
   // Mode: 'login' | 'signup'
   const [mode, setMode] = useState('login');
@@ -86,7 +84,7 @@ const Login = () => {
             throw new Error('Incorrect OTP. Please enter the full 6-digit code.');
           }
           const cleanSignUpEmail = cleanEmail(email);
-          const { data, error } = await verifySignUp(cleanSignUpEmail, otpCode);
+          const { error } = await verifySignUp(cleanSignUpEmail, otpCode);
           if (error) throw error;
 
           setSuccessMsg('Email verified successfully! Logging in...');
@@ -117,8 +115,15 @@ const Login = () => {
 
           if (error) throw error;
           
-          setSuccessMsg('Verification code sent to your email. Please verify to complete signup.');
-          setIsVerifyingSignUp(true);
+          if (data?.session) {
+            setSuccessMsg('Registration successful! Logging you in...');
+            setTimeout(() => {
+              navigate('/');
+            }, 1500);
+          } else {
+            setSuccessMsg('Verification link/code sent to your email. Please verify to complete signup.');
+            setIsVerifyingSignUp(true);
+          }
         }
       } else {
         // Login Flows
@@ -127,7 +132,7 @@ const Login = () => {
             throw new Error('Please enter email/mobile and password.');
           }
           const cleanedEmail = cleanEmail(emailOrMobile);
-          const { data, error } = await signIn(cleanedEmail, password);
+          const { error } = await signIn(cleanedEmail, password);
           if (error) throw error;
           navigate('/');
 
@@ -201,10 +206,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDemoMode = () => {
-    // Demo mode is disabled for security reasons
   };
 
   return (
@@ -608,27 +609,50 @@ const Login = () => {
 
           {/* Back button during SignUp OTP Verification view */}
           {mode === 'signup' && isVerifyingSignUp && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsVerifyingSignUp(false);
-                setOtpCode('');
-                setErrorMsg('');
-                setSuccessMsg('');
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#3B82F6',
-                fontWeight: '800',
-                cursor: 'pointer',
-                margin: '8px auto 0',
-                padding: 0,
-                fontSize: '13px'
-              }}
-            >
-              Back to Edit Info
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', marginTop: '12px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsVerifyingSignUp(false);
+                  setOtpCode('');
+                  setErrorMsg('');
+                  setSuccessMsg('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#3B82F6',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontSize: '13px'
+                }}
+              >
+                Back to Edit Info
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setLoginType('password');
+                  setIsVerifyingSignUp(false);
+                  setOtpCode('');
+                  setErrorMsg('');
+                  setSuccessMsg('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#0B1F4D',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontSize: '13px'
+                }}
+              >
+                Back to Login
+              </button>
+            </div>
           )}
         </form>
 

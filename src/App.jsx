@@ -124,7 +124,7 @@ const CorporateWebsite = React.lazy(() => import('./pages/CorporateWebsite'));
 
 const Dashboard = ({ onOpenSidebar }) => {
   const { t } = useTranslation();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = React.useState({
     total_animals: 0,
@@ -146,8 +146,9 @@ const Dashboard = ({ onOpenSidebar }) => {
   });
   const [loading, setLoading] = React.useState(true);
 
-  const fetchStats = async () => {
+  const fetchStats = React.useCallback(async () => {
     if (!user) return;
+    await Promise.resolve();
     setLoading(true);
     try {
       // 1. Auto-promote calves whose ages exceed thresholds:
@@ -301,11 +302,14 @@ const Dashboard = ({ onOpenSidebar }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   React.useEffect(() => {
-    fetchStats();
-  }, [user, profile]);
+    const timer = setTimeout(() => {
+      fetchStats();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchStats]);
 
   if (loading) {
     return (
@@ -1588,44 +1592,13 @@ const AppContent = () => {
   const [isCheckingUpdate, setIsCheckingUpdate] = React.useState(true); // Start as true to check updates along with splash
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLargeScreen } = useResponsive();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const isAdminDomain = window.location.hostname.includes('admin.milvexasolutions.in') || window.location.hostname.includes('admin.localhost') || window.location.pathname.startsWith('/admin');
   const isAppDomain = (window.location.hostname.includes('app.milvexasolutions.in') || window.location.hostname.includes('app.localhost') || window.location.pathname.startsWith('/app') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (typeof window !== 'undefined' && !!window.Capacitor)) && !window.location.hostname.includes('www.milvexasolutions.in') && window.location.hostname !== 'milvexasolutions.in';
 
-  React.useEffect(() => {
-    if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => { document.body.style.overflow = 'auto'; };
-  }, [isSidebarOpen]);
-
-  // Dynamically set document title based on subdomain/route
-  React.useEffect(() => {
-    if (isAdminDomain) {
-      document.title = "Milvexa - Admin Panel";
-    } else if (isAppDomain) {
-      document.title = "MILVEXA – Cattle Farm Management";
-    } else {
-      document.title = "Milvexa Solutions Pvt. Ltd.";
-    }
-  }, [isAdminDomain, isAppDomain, location.pathname]);
-
   const APP_VERSION = "v1.1.2"; // Current installed version
 
-  // Expose triggers to allow Settings.jsx to initiate a manual update check
-  React.useEffect(() => {
-    window.globalSetUpdateInfo = setUpdateInfo;
-    window.globalHandleCheckUpdates = handleCheckUpdates;
-    return () => {
-      delete window.globalSetUpdateInfo;
-      delete window.globalHandleCheckUpdates;
-    };
-  }, []);
-
-  const handleCheckUpdates = async (manual = false) => {
+  const handleCheckUpdates = React.useCallback(async (manual = false) => {
     if (isAdminDomain) {
       setIsCheckingUpdate(false);
       return;
@@ -1672,7 +1645,9 @@ const AppContent = () => {
               announceImage = parsed.image || '';
               isMaint = parsed.is_maintenance || false;
               maintMsg = parsed.maintenance_message || '';
-            } catch (e) { }
+            } catch (err) {
+              console.warn('Failed to parse announcement JSON:', err);
+            }
           }
           if (isMaint) {
             setMaintenanceInfo({ text: maintMsg || 'System is currently undergoing scheduled maintenance.' });
@@ -1730,12 +1705,47 @@ const AppContent = () => {
     } finally {
       setIsCheckingUpdate(false);
     }
-  };
+  }, [isAdminDomain]);
+
+  React.useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => { document.body.style.overflow = 'auto'; };
+  }, [isSidebarOpen]);
+
+  // Dynamically set document title based on subdomain/route
+  React.useEffect(() => {
+    if (isAdminDomain) {
+      document.title = "Milvexa - Admin Panel";
+    } else if (isAppDomain) {
+      document.title = "MILVEXA – Cattle Farm Management";
+    } else {
+      document.title = "Milvexa Solutions Pvt. Ltd.";
+    }
+  }, [isAdminDomain, isAppDomain, location.pathname]);
+
+  // Expose triggers to allow Settings.jsx to initiate a manual update check
+  React.useEffect(() => {
+    window.globalSetUpdateInfo = setUpdateInfo;
+    window.globalHandleCheckUpdates = handleCheckUpdates;
+    return () => {
+      delete window.globalSetUpdateInfo;
+      delete window.globalHandleCheckUpdates;
+    };
+  }, [handleCheckUpdates]);
 
   React.useEffect(() => {
     // Initial check
-    handleCheckUpdates();
+    const timer = setTimeout(() => {
+      handleCheckUpdates();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [handleCheckUpdates]);
 
+  React.useEffect(() => {
     // Request notification permission and schedule daily reminders
     const initNotifications = async () => {
       try {
@@ -1762,7 +1772,7 @@ const AppContent = () => {
     if (user && location.pathname === '/login') {
       navigate('/');
     }
-  }, [user, location.pathname]);
+  }, [user, location.pathname, navigate]);
 
   // Coordinate splash screen fadeout once both auth check and update check are completed
   React.useEffect(() => {
@@ -1834,7 +1844,7 @@ const AppContent = () => {
     const lines = notes.split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0)
-      .map(line => line.replace(/^[\s\-\*\•\d\.\)]+/, '').trim()); // Strip bullet prefixes
+      .map(line => line.replace(/^[\s\-*•\d.)]+/, '').trim()); // Strip bullet prefixes
 
     if (lines.length <= 1) {
       return (
@@ -2493,7 +2503,7 @@ const AppContent = () => {
         setRefreshKey(prev => prev + 1);
       }}>
         <React.Suspense fallback={<PageLoader />}>
-          <Routes>
+          <Routes key={refreshKey}>
             <Route path="/" element={<Dashboard onOpenSidebar={() => setIsSidebarOpen(true)} />} />
             <Route path="/dashboard" element={<Dashboard onOpenSidebar={() => setIsSidebarOpen(true)} />} />
             <Route path="/animals/add" element={<AddAnimal />} />
